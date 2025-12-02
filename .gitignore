@@ -58,3 +58,5 @@ install_manifest.txt
 # OS files
 .DS_Store
 Thumbs.db
+# App data
+scores.dat
