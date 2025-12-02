@@ -1,92 +1,89 @@
 # 🧱 Breakout - Proyecto Final (OyAC)
 
-Un clon clásico del juego **Breakout** desarrollado en **C** puro utilizando la librería gráfica **SDL3**, con una característica única: **toda la lógica crítica del juego (física, colisiones, máquina de estados y ordenamiento) está implementada en Lenguaje Ensamblador x86 (Inline ASM).**
+Un clon avanzado del clásico juego **Breakout** desarrollado en **C** puro y **SDL3**, destacando por su motor híbrido: **toda la lógica crítica (física, colisiones, máquina de estados y algoritmos de ordenamiento) está implementada nativamente en Lenguaje Ensamblador (MASM x86).**
 
-Este proyecto fue desarrollado como parte de la materia de Organización y Arquitectura de Computadoras.
+Este proyecto demuestra la integración eficiente entre lenguajes de alto nivel para la gestión de medios y bajo nivel para el procesamiento lógico.
 
 ## 📸 Capturas de Pantalla
 
-### Menú Principal
-<img width="1400" height="936" alt="image" src="https://github.com/user-attachments/assets/d775fcd7-6d9b-4f67-a6c3-1df760f834e3" />
+| Menú Principal | Gameplay (Nivel 1) |
+|:---:|:---:|
+| ![Menú](<img width="1400" height="936" alt="image" src="https://github.com/user-attachments/assets/d775fcd7-6d9b-4f67-a6c3-1df760f834e3" />) | ![Gameplay](<img width="1395" height="934" alt="image" src="https://github.com/user-attachments/assets/417fdcf2-a4c6-4e23-9b21-334744a326d8" />
+) |
+| *Acceso a modos y créditos* | *Física de rebote dinámica* |
 
-*Vista del menú con opciones de Jugar, Puntuaciones y Salir*
+| Pantalla de Victoria | Créditos |
+|:---:|:---:|
+| ![Victoria](screenshots/win.png) | ![Créditos](<img width="1399" height="936" alt="image" src="https://github.com/user-attachments/assets/8cb7fb3f-4ffb-4f6c-912c-c692fdab4af6" />) |
+| *Mensaje al completar los 10 niveles* | *Reconocimiento a los autores* |
 
-### Gameplay - Nivel 1
-<img width="1395" height="934" alt="image" src="https://github.com/user-attachments/assets/417fdcf2-a4c6-4e23-9b21-334744a326d8" />
-
-*Vista de la paleta, la pelota y los ladrillos en el primer nivel*
-
-### Tabla de Puntuaciones (High Scores)
-<img width="1399" height="936" alt="image" src="https://github.com/user-attachments/assets/8cb7fb3f-4ffb-4f6c-912c-c692fdab4af6" />
-
-*Pantalla mostrando los mejores jugadores ordenados*
+> *Nota: Reemplaza las rutas de imagen con tus propias capturas.*
 
 ---
 
-## 🚀 Características Principales
+## 🚀 Características Técnicas
 
-* **Motor Híbrido C/ASM:** Integración de bloques `__asm` dentro de C para el manejo de alto rendimiento.
-* **Física en Ensamblador:** Cálculos de rebote, velocidad y trayectoria de la pelota realizados a bajo nivel.
-* **Máquina de Estados en ASM:** Control de flujo del juego (Menú -> Juego -> Pausa -> Game Over) gestionado mediante registros y saltos.
-* **Algoritmo de Ordenamiento en ASM:** Implementación de *Bubble Sort* en ensamblador para ordenar la tabla de puntuaciones al guardar un nuevo récord.
-* **Sistema de Niveles:** 10 niveles con patrones de mapas únicos definidos por matrices.
-* **Mecánicas Avanzadas:**
-    * Resistencia de ladrillos (golpes múltiples) a partir del nivel 6.
-    * Vidas extra al alcanzar puntuaciones específicas.
-    * Rebote dinámico aleatorio ("Factor Caos") para evitar patrones repetitivos.
-* **Estética Retro:** Uso de fuentes tipográficas arcade y renderizado de corazones mediante primitivas geométricas (Pixel Art).
-* **Persistencia de Datos:** Guardado y lectura de los mejores puntajes en archivo binario (`scores.dat`).
+### 🧠 Motor Híbrido C/ASM
+El núcleo del juego no es C estándar. Utilizamos bloques `__asm` para:
+* **Física de la Pelota:** Cálculos de trayectoria y velocidad utilizando registros de punto flotante (FPU `fld`, `fstp`).
+* **Sistema de Colisiones:** Detección de impacto AABB optimizada en ensamblador.
+* **Máquina de Estados:** Gestión del flujo del juego (Menú -> Juego -> Pausa -> Victoria) mediante manipulación directa de registros y saltos (`cmp`, `je`, `jmp`).
+* **Algoritmo de Ordenamiento:** Implementación manual de *Bubble Sort* en ASM para organizar la tabla de puntuaciones en tiempo real al guardar un récord.
 
-## 🛠️ Tecnologías Utilizadas
+### 🎮 Mecánicas de Juego
+* **Sistema de 10 Niveles:** Mapas progresivos con diseños únicos definidos por matrices.
+* **Dificultad Dinámica:**
+    * Aumento de velocidad del 15% por nivel.
+    * **Resistencia de Ladrillos:** A partir del Nivel 6, los ladrillos requieren múltiples golpes (indicado por colores).
+* **Física "Factor Caos":** Algoritmo de rebote que introduce micro-perturbaciones aleatorias en el ángulo de la pelota para evitar patrones repetitivos y aumentar el realismo.
+* **Sistema de Vidas y Récords:**
+    * 3 Vidas iniciales + Vidas extra cada 5,000 puntos (Máx 5).
+    * Persistencia de datos: Los 10 mejores puntajes se guardan en disco (`scores.dat`).
 
-* **Lenguaje:** C (Estándar C11/C17).
-* **Arquitectura:** x86 (32-bits). *Nota: El proyecto debe compilarse en x86 debido al uso de Inline ASM de MSVC.*
-* **Gráficos/Input:** [SDL3](https://libsdl.org/) (Simple DirectMedia Layer 3).
-* **Texto:** [SDL3_ttf](https://github.com/libsdl-org/SDL_ttf).
-* **IDE Recomendado:** Visual Studio 2022 (con herramientas de compilación C++).
+### 🎨 Estética Retro
+* Fuente tipográfica estilo Arcade (`RETRO.TTF`).
+* Renderizado de corazones mediante primitivas geométricas (Pixel Art).
+* Uso de caracteres Unicode para simbología especial en créditos.
 
-## 🎮 Controles
+## 🕹️ Controles
 
-| Tecla | Acción |
-| :--- | :--- |
-| **Flecha Izquierda** | Mover Paddle a la izquierda |
-| **Flecha Derecha** | Mover Paddle a la derecha |
-| **Enter** | Seleccionar / Pausar / Guardar Récord |
-| **Esc** | Salir / Regresar al Menú / Cancelar |
-| **Tab** | Ver Mejores Puntuaciones (Solo en Menú) |
+| Contexto | Tecla | Acción |
+| :--- | :---: | :--- |
+| **Menú** | `Enter` | Iniciar Juego |
+| | `Tab` | Ver Mejores Puntuaciones |
+| | `C` | Ver Créditos |
+| | `Esc` | Salir del Juego |
+| **En Juego** | `←` / `→` | Mover la Paleta |
+| | `Enter` | Pausar Juego |
+| **Pausa** | `Enter` | Reanudar |
+| **Game Over / Win** | `Enter` | Ir a guardar Récord |
+| **General** | `Esc` | Volver al Menú anterior |
 
-## 🔧 Instalación y Compilación
+## 🛠️ Instalación y Compilación
 
-Para ejecutar este proyecto en tu entorno local:
+Este proyecto está diseñado para **Visual Studio** en arquitectura **x86** (32-bits).
 
 1.  **Clonar el repositorio:**
     ```bash
     git clone [https://github.com/TU_USUARIO/oyac-breakout-proyectofinal.git](https://github.com/TU_USUARIO/oyac-breakout-proyectofinal.git)
     ```
-2.  **Configurar Visual Studio:**
-    * Abre el archivo `.sln`.
-    * Asegúrate de que la plataforma de solución esté configurada en **x86** (Debug o Release). El ensamblador *inline* de MSVC no funciona en x64.
-3.  **Dependencias SDL3:**
-    * Asegúrate de que las carpetas `include` y `lib` de SDL3 y SDL3_ttf estén correctamente vinculadas en las propiedades del proyecto:
-        * *C/C++ -> General -> Directorios de inclusión adicionales.*
-        * *Vinculador -> General -> Directorios de bibliotecas adicionales.*
-        * *Vinculador -> Entrada -> Dependencias adicionales:* `SDL3.lib`, `SDL3_ttf.lib`.
-4.  **Archivos Runtime:**
-    * Copia los archivos `SDL3.dll`, `SDL3_ttf.dll` y `RETRO.TTF` (o la fuente que estés usando) en la misma carpeta donde se genera el ejecutable (`/x86/Debug` o `/x86/Release`).
-5.  **Compilar y Ejecutar.**
-
-## 🧩 Estructura del Código Relevante
-
-El núcleo del proyecto reside en `BreakOut.c`. Aquí algunos puntos de interés para revisión de código:
-
-* `OrdenamientoPuntajesASM()`: Implementación manual de ordenamiento de estructuras en memoria.
-* `bucle principal -> __asm`: Máquina de estados que gestiona `ESTADO_MENU`, `ESTADO_JUGANDO`, etc.
-* `bucle principal -> física`: Bloques de movimiento y detección de colisiones AABB (Axis-Aligned Bounding Box) utilizando registros de la FPU (`fld`, `fcomp`, `fstp`).
+2.  **Requisitos Previos:**
+    * Visual Studio 2022 (con soporte para C++).
+    * Librerías **SDL3** y **SDL3_ttf** (incluidas en la estructura de carpetas o descargables desde [libsdl.org](https://libsdl.org/)).
+3.  **Configuración del Proyecto:**
+    * Abrir `BreakoutGame.sln`.
+    * Asegurarse de que la plataforma esté en **x86** (El ensamblador *inline* de MSVC no soporta x64).
+    * Verificar que las rutas de los *Include Directories* y *Library Directories* apunten a las carpetas de SDL3 en tu equipo.
+4.  **Ejecución:**
+    * Compilar la solución.
+    * **Importante:** Asegúrate de que los archivos `SDL3.dll`, `SDL3_ttf.dll` y `RETRO.TTF` estén en la misma carpeta que el ejecutable generado (`Debug` o `Release`).
 
 ## 👥 Autores
 
-* **Astrid Jimenez**
-* **Erick Moya**
+Proyecto desarrollado para la materia de **Organización y Arquitectura de Computadoras**:
+
+* **♥ Astrid Yamilet Jimenez Barrera ♥**
+* **✨ Erick Anselmo Moya Monreal ✨**
 
 ---
-*Proyecto realizado con fines académicos para demostrar la integración de lenguajes de alto y bajo nivel.*
+*Hecho con ❤️ y mucho código ensamblador.*
