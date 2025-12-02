@@ -81,7 +81,7 @@ Este proyecto está diseñado para **Visual Studio** en arquitectura **x86** (32
 
 Proyecto desarrollado con fines académicos para la materia de **Organización y Arquitectura de Computadoras** para demostrar la integración de lenguajes de alto y bajo nivel:
 
-* **♥ Astrid Yamilet Jimenez Barrera ♥**
+* **♥ Astrid Yamilet Jiménez Barrera ♥**
 * **✨ Erick Anselmo Moya Monreal ✨**
 
 ---
