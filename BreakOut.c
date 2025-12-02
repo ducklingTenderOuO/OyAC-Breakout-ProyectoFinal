@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h> 
-#include <stdlib.h> // Para rand() y srand()
-#include <time.h>   // Para time()
+#include <stdlib.h> 
+#include <time.h>   
 
 // --- CONSTANTES ---
 const int ANCHO_VENTANA = 1400;
@@ -14,7 +14,7 @@ const int ALTO_VENTANA = 900;
 #define MAX_VIDAS 5
 #define PUNTAJE_VIDA_EXTRA 5000
 
-// Estados del Juego
+// Estados
 #define ESTADO_MENU         0
 #define ESTADO_JUGANDO      1
 #define ESTADO_PAUSA        2
@@ -22,10 +22,10 @@ const int ALTO_VENTANA = 900;
 #define ESTADO_INPUT_NOMBRE 4
 #define ESTADO_MEJORES      5
 
-// --- AJUSTES DE BALANCE ---
-const float PADDLE_ANCHO = 220.0f; // Paddle grande para facilitar
+// --- AJUSTES DE BALANCE FINAL ---
+const float PADDLE_ANCHO = 200.0f;
 const float PADDLE_ALTO = 30.0f;
-const float VEL_BASE = 5.0f;       // Velocidad inicial amigable
+const float VEL_BASE = 6.5f;
 const float PELOTA_TAM = 26.0f;
 
 // Ladrillos
@@ -35,7 +35,7 @@ const float LADRILLO_ANCHO = 120.0f;
 const float LADRILLO_ALTO = 40.0f;
 const float LADRILLO_ESPACIO = 10.0f;
 const float LADRILLO_OFFSET_X = (1400 - (10 * (120 + 10))) / 2.0f + 5.0f;
-const float LADRILLO_OFFSET_Y = 100.0f;
+const float LADRILLO_OFFSET_Y = 150.0f;
 
 // --- ESTRUCTURAS ---
 typedef struct {
@@ -51,51 +51,30 @@ typedef struct {
     int filaIdx;
 } Ladrillo;
 
-// --- MAPAS DE NIVELES (10 Niveles) ---
-// 1 = Ladrillo, 0 = Vacío
-// CAMBIO EN NIVEL 1: Ahora solo tiene 3 filas para ser más rápido y divertido
+// --- MAPAS (Nivel 1 ajustado a 3 filas) ---
 const int PATRONES[10][FILAS][COLUMNAS] = {
-    // NIVEL 1: Fácil (30 ladrillos)
-    {
-        {1,1,1,1,1,1,1,1,1,1},
-        {1,1,1,1,1,1,1,1,1,1},
-        {1,1,1,1,1,1,1,1,1,1},
-        {0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0}
-    },
-    // NIVEL 2: Ajedrez (30 ladrillos)
+    { {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {0,0,0,0,0,0,0,0,0,0}, {0,0,0,0,0,0,0,0,0,0}, {0,0,0,0,0,0,0,0,0,0} },
     { {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1} },
-    // NIVEL 3: Columnas
     { {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1} },
-    // NIVEL 4: Pirámide Invertida
     { {1,1,1,1,1,1,1,1,1,1}, {0,1,1,1,1,1,1,1,1,0}, {0,0,1,1,1,1,1,1,0,0}, {0,0,0,1,1,1,1,0,0,0}, {0,0,0,0,1,1,0,0,0,0}, {0,0,0,0,0,0,0,0,0,0} },
-    // NIVEL 5: Túnel
     { {1,1,0,0,0,0,0,0,1,1}, {1,1,0,0,0,0,0,0,1,1}, {1,1,0,0,1,1,0,0,1,1}, {1,1,0,0,1,1,0,0,1,1}, {1,1,0,0,0,0,0,0,1,1}, {1,1,0,0,0,0,0,0,1,1} },
-    // NIVEL 6: La X (Empieza resistencia)
     { {1,0,0,0,0,0,0,0,0,1}, {0,1,0,0,0,0,0,0,1,0}, {0,0,1,0,0,0,0,1,0,0}, {0,0,0,1,1,1,1,0,0,0}, {0,0,1,0,0,0,0,1,0,0}, {1,0,0,0,0,0,0,0,0,1} },
-    // NIVEL 7: Corazón
     { {0,1,1,0,0,0,0,1,1,0}, {1,1,1,1,0,0,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {0,1,1,1,1,1,1,1,1,0}, {0,0,1,1,1,1,1,1,0,0}, {0,0,0,1,1,1,1,0,0,0} },
-    // NIVEL 8: Caja
     { {1,1,1,1,1,1,1,1,1,1}, {1,0,0,0,0,0,0,0,0,1}, {1,0,1,1,1,1,1,1,0,1}, {1,0,1,0,0,0,0,1,0,1}, {1,0,0,0,0,0,0,0,0,1}, {1,1,1,1,1,1,1,1,1,1} },
-    // NIVEL 9: Denso
     { {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0} },
-    // NIVEL 10: Cara Boss
     { {1,0,0,1,0,0,1,0,0,1}, {0,0,0,0,0,0,0,0,0,0}, {0,1,1,0,0,0,0,1,1,0}, {0,0,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,0,0,0,1}, {0,1,1,1,1,1,1,1,1,0} }
 };
 
-// --- GLOBALES ---
+// GLOBALES
 Jugador mejoresPuntajes[MAX_SCORES];
 char inputText[16] = "";
 int nivelActual = 1;
 int ladrillosRestantes = 0;
 int proximaVida = PUNTAJE_VIDA_EXTRA;
 
-// --- FUNCIONES ---
+// FUNCIONES
 void CargarNivel(Ladrillo* ladrillos, int nivel) {
-    if (nivel < 1) nivel = 1;
-    if (nivel > 10) nivel = 1;
-
+    if (nivel < 1) nivel = 1; if (nivel > 10) nivel = 1;
     int mapIdx = nivel - 1;
     int count = 0;
     ladrillosRestantes = 0;
@@ -111,8 +90,6 @@ void CargarNivel(Ladrillo* ladrillos, int nivel) {
             if (PATRONES[mapIdx][i][j] == 1) {
                 ladrillos[count].activo = true;
                 ladrillosRestantes++;
-
-                // Resistencia a partir del nivel 6
                 if (nivel >= 6) {
                     if (i == 0 || i == 1) ladrillos[count].resistencia = 3;
                     else if (i == 2 || i == 3) ladrillos[count].resistencia = 2;
@@ -140,25 +117,18 @@ void CargarPuntajes() {
         for (int i = 0; i < MAX_SCORES; i++) mejoresPuntajes[i].nombre[15] = '\0';
     }
     else {
-        for (int i = 0; i < MAX_SCORES; i++) {
-            strcpy_s(mejoresPuntajes[i].nombre, 16, "-----");
-            mejoresPuntajes[i].puntaje = 0;
-        }
+        for (int i = 0; i < MAX_SCORES; i++) { strcpy_s(mejoresPuntajes[i].nombre, 16, "-----"); mejoresPuntajes[i].puntaje = 0; }
     }
 }
 
 void GuardarPuntajes() {
     FILE* file = fopen("scores.dat", "wb");
-    if (file) {
-        fwrite(mejoresPuntajes, sizeof(Jugador), MAX_SCORES, file);
-        fclose(file);
-    }
+    if (file) { fwrite(mejoresPuntajes, sizeof(Jugador), MAX_SCORES, file); fclose(file); }
 }
 
 void OrdenarPuntajesASM() {
     Jugador* pLista = mejoresPuntajes;
     int n = MAX_SCORES;
-
     __asm {
         mov esi, pLista
         mov ecx, n
@@ -175,22 +145,10 @@ void OrdenarPuntajesASM() {
             jge NoSwap
             mov[edi + 16], edx
             mov[edi + 20 + 16], eax
-            mov eax, [edi]
-            mov edx, [edi + 20]
-            mov[edi], edx
-            mov[edi + 20], eax
-            mov eax, [edi + 4]
-            mov edx, [edi + 24]
-            mov[edi + 4], edx
-            mov[edi + 24], eax
-            mov eax, [edi + 8]
-            mov edx, [edi + 28]
-            mov[edi + 8], edx
-            mov[edi + 28], eax
-            mov eax, [edi + 12]
-            mov edx, [edi + 32]
-            mov[edi + 12], edx
-            mov[edi + 32], eax
+            mov eax, [edi]; mov edx, [edi + 20]; mov[edi], edx; mov[edi + 20], eax
+            mov eax, [edi + 4]; mov edx, [edi + 24]; mov[edi + 4], edx; mov[edi + 24], eax
+            mov eax, [edi + 8]; mov edx, [edi + 28]; mov[edi + 8], edx; mov[edi + 28], eax
+            mov eax, [edi + 12]; mov edx, [edi + 32]; mov[edi + 12], edx; mov[edi + 32], eax
             NoSwap :
         add edi, 20
             dec ebx
@@ -226,7 +184,6 @@ void DibujarCorazon(SDL_Renderer* renderer, float x, float y, float escala) {
     }
 }
 
-// --- MAIN ---
 int main(int argc, char* argv[]) {
     srand((unsigned int)time(NULL));
 
@@ -272,16 +229,13 @@ int main(int argc, char* argv[]) {
 
         while (SDL_PollEvent(&evento)) {
             if (evento.type == SDL_EVENT_QUIT) corriendo = 0;
-
             if (estado_actual == ESTADO_INPUT_NOMBRE && evento.type == SDL_EVENT_TEXT_INPUT) {
                 if (strlen(inputText) < 15) strcat_s(inputText, 16, evento.text.text);
             }
-
             if (evento.type == SDL_EVENT_KEY_DOWN) {
                 if (evento.key.key == SDLK_RETURN) input_enter = 1;
                 if (evento.key.key == SDLK_ESCAPE) input_esc = 1;
                 if (evento.key.key == SDLK_TAB && estado_actual == ESTADO_MENU) estado_actual = ESTADO_MEJORES;
-
                 if (estado_actual == ESTADO_INPUT_NOMBRE && evento.key.key == SDLK_BACKSPACE) {
                     int len = (int)strlen(inputText);
                     if (len > 0) inputText[len - 1] = '\0';
@@ -289,7 +243,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // LÓGICA DE ESTADOS (ASM)
+        // MAQUINA DE ESTADOS (ASM)
         __asm {
             mov eax, estado_actual
             cmp eax, ESTADO_MENU
@@ -356,7 +310,6 @@ int main(int argc, char* argv[]) {
                 FinLogica :
         }
 
-        // LOGICA AUXILIAR EN C
         if (estado_actual == ESTADO_MEJORES && input_enter) {
             SDL_StopTextInput(ventana);
             if (strlen(inputText) == 0) strcpy_s(inputText, 16, "ANONIMO");
@@ -378,10 +331,9 @@ int main(int argc, char* argv[]) {
             CargarNivel(ladrillos, nivelActual);
         }
 
-        // FÍSICA (ASM) - Solo Jugando
         if (estado_actual == ESTADO_JUGANDO) {
             float temp_px = paddle.x;
-            float temp_pv = VEL_BASE * 1.5f;
+            float temp_pv = 12.0f;
             int dir_paddle = 0;
             if (teclas[SDL_SCANCODE_RIGHT]) dir_paddle = 1;
             if (teclas[SDL_SCANCODE_LEFT])  dir_paddle = -1;
@@ -413,18 +365,36 @@ int main(int argc, char* argv[]) {
             float ball_r = pelota.x + PELOTA_TAM; float ball_b = pelota.y + PELOTA_TAM;
             float pad_r = paddle.x + PADDLE_ANCHO; float pad_b = paddle.y + PADDLE_ALTO;
 
+            // --- NUEVA FISICA NATURAL CON PERTURBACIÓN ALEATORIA (ASM) ---
             if (ball_r >= paddle.x && pelota.x <= pad_r && ball_b >= paddle.y && pelota.y <= pad_b) {
-                vel_y = -fabs(vel_y);
-                pelota.y = paddle.y - PELOTA_TAM - 1.0f;
+                // Generamos un numero aleatorio pequeño entre -1.5 y 1.5 en C
+                float perturbacion = ((float)(rand() % 300) / 100.0f) - 1.5f;
+
+                __asm {
+                    ; 1. Rebote natural en Y
+                    fld vel_y
+                    fabs
+                    fchs; Negativo = Arriba
+                    fstp vel_y
+
+                    ; 2. Añadir perturbacion aleatoria a X
+                    fld vel_x
+                    fadd perturbacion
+                    fstp vel_x
+                }
+                // Evitamos que la pelota se quede horizontal
+                if (fabs(vel_x) < 2.0f) vel_x = (vel_x >= 0) ? 2.0f : -2.0f;
+
+                pelota.y = paddle.y - PELOTA_TAM - 2.0f;
             }
 
+            // Rebote Ladrillos
             for (int i = 0; i < FILAS * COLUMNAS; i++) {
                 if (!ladrillos[i].activo) continue;
                 SDL_FRect b = ladrillos[i].rect;
                 if (ball_r >= b.x && pelota.x <= b.x + b.w && ball_b >= b.y && pelota.y <= b.y + b.h) {
-
                     ladrillos[i].resistencia--;
-                    vel_y = -vel_y;
+                    vel_y = -vel_y; // Rebote simple
 
                     if (ladrillos[i].resistencia <= 0) {
                         ladrillos[i].activo = false;
@@ -475,7 +445,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // RENDERIZADO
+        // RENDER
         SDL_SetRenderDrawColor(renderer, 15, 15, 25, 255);
         SDL_RenderClear(renderer);
 
