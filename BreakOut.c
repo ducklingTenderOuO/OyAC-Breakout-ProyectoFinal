@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
-#include <math.h> // Para fabs
+#include <math.h> 
 
 // --- CONSTANTES ---
 const int ANCHO_VENTANA = 1400;
@@ -21,7 +21,8 @@ const int ALTO_VENTANA = 900;
 // Objetos Escalamiento
 const float PADDLE_ANCHO = 180.0f;
 const float PADDLE_ALTO = 30.0f;
-const float PADDLE_VEL = 9.0f;
+// Velocidad base (aumentará con niveles)
+const float VEL_BASE = 7.0f;
 const float PELOTA_TAM = 26.0f;
 
 // Ladrillos
@@ -30,13 +31,12 @@ const float PELOTA_TAM = 26.0f;
 const float LADRILLO_ANCHO = 120.0f;
 const float LADRILLO_ALTO = 40.0f;
 const float LADRILLO_ESPACIO = 10.0f;
-// Cálculo centrado
 const float LADRILLO_OFFSET_X = (1400 - (10 * (120 + 10))) / 2.0f + 5.0f;
 const float LADRILLO_OFFSET_Y = 100.0f;
 
-// Estructura de Jugador (20 bytes: 16 char + 4 int)
+// --- ESTRUCTURAS ---
 typedef struct {
-    char nombre[16]; // 15 chars + null terminator
+    char nombre[16];
     int puntaje;
 } Jugador;
 
@@ -45,24 +45,68 @@ typedef struct {
     bool activo;
 } Ladrillo;
 
+// --- MAPAS DE NIVELES (10 Niveles) ---
+// 1 = Ladrillo, 0 = Vacío
+const int PATRONES[10][FILAS][COLUMNAS] = {
+    { {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1} }, // N1: Muro
+    { {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1} }, // N2: Ajedrez
+    { {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1}, {1,1,0,1,1,0,1,1,0,1} }, // N3: Columnas
+    { {1,1,1,1,1,1,1,1,1,1}, {0,1,1,1,1,1,1,1,1,0}, {0,0,1,1,1,1,1,1,0,0}, {0,0,0,1,1,1,1,0,0,0}, {0,0,0,0,1,1,0,0,0,0}, {0,0,0,0,0,0,0,0,0,0} }, // N4: Piramide
+    { {1,1,0,0,0,0,0,0,1,1}, {1,1,0,0,0,0,0,0,1,1}, {1,1,0,0,1,1,0,0,1,1}, {1,1,0,0,1,1,0,0,1,1}, {1,1,0,0,0,0,0,0,1,1}, {1,1,0,0,0,0,0,0,1,1} }, // N5: Tunel
+    { {1,0,0,0,0,0,0,0,0,1}, {0,1,0,0,0,0,0,0,1,0}, {0,0,1,0,0,0,0,1,0,0}, {0,0,0,1,1,1,1,0,0,0}, {0,0,1,0,0,0,0,1,0,0}, {1,0,0,0,0,0,0,0,0,1} }, // N6: X
+    { {0,1,1,0,0,0,0,1,1,0}, {1,1,1,1,0,0,1,1,1,1}, {1,1,1,1,1,1,1,1,1,1}, {0,1,1,1,1,1,1,1,1,0}, {0,0,1,1,1,1,1,1,0,0}, {0,0,0,1,1,1,1,0,0,0} }, // N7: Corazón
+    { {1,1,1,1,1,1,1,1,1,1}, {1,0,0,0,0,0,0,0,0,1}, {1,0,1,1,1,1,1,1,0,1}, {1,0,1,0,0,0,0,1,0,1}, {1,0,0,0,0,0,0,0,0,1}, {1,1,1,1,1,1,1,1,1,1} }, // N8: Cajas
+    { {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0}, {0,1,0,1,0,1,0,1,0,1}, {1,0,1,0,1,0,1,0,1,0} }, // N9: Denso
+    { {1,0,0,1,0,0,1,0,0,1}, {0,0,0,0,0,0,0,0,0,0}, {0,1,1,0,0,0,0,1,1,0}, {0,0,0,0,0,0,0,0,0,0}, {1,0,0,0,0,0,0,0,0,1}, {0,1,1,1,1,1,1,1,1,0} }  // N10: Boss Face
+};
+
 // --- GLOBALES ---
 Jugador mejoresPuntajes[MAX_SCORES];
 char inputText[16] = "";
-bool archivoCargado = false;
+int nivelActual = 1;
+int ladrillosRestantes = 0;
 
-// --- FUNCIONES DE ARCHIVO ---
+// --- FUNCIONES ---
+
+// Cargar Nivel desde Matriz
+void CargarNivel(Ladrillo* ladrillos, int nivel) {
+    if (nivel < 1) nivel = 1;
+    if (nivel > 10) nivel = 1; // Loop al nivel 1 si pasas el 10
+
+    int mapIdx = nivel - 1;
+    int count = 0;
+    ladrillosRestantes = 0;
+
+    for (int i = 0; i < FILAS; i++) {
+        for (int j = 0; j < COLUMNAS; j++) {
+            // Posición fija
+            ladrillos[count].rect.x = LADRILLO_OFFSET_X + (j * (LADRILLO_ANCHO + LADRILLO_ESPACIO));
+            ladrillos[count].rect.y = LADRILLO_OFFSET_Y + (i * (LADRILLO_ALTO + LADRILLO_ESPACIO));
+            ladrillos[count].rect.w = LADRILLO_ANCHO;
+            ladrillos[count].rect.h = LADRILLO_ALTO;
+
+            // Activar según mapa
+            if (PATRONES[mapIdx][i][j] == 1) {
+                ladrillos[count].activo = true;
+                ladrillosRestantes++;
+            }
+            else {
+                ladrillos[count].activo = false;
+            }
+            count++;
+        }
+    }
+}
+
+// Persistencia
 void CargarPuntajes() {
     FILE* file = fopen("scores.dat", "rb");
     if (file) {
         fread(mejoresPuntajes, sizeof(Jugador), MAX_SCORES, file);
         fclose(file);
-        // SEGURIDAD: Asegurar que los strings terminan en \0 para evitar CRASH con strlen
-        for (int i = 0; i < MAX_SCORES; i++) {
-            mejoresPuntajes[i].nombre[15] = '\0';
-        }
+        for (int i = 0; i < MAX_SCORES; i++) mejoresPuntajes[i].nombre[15] = '\0';
     }
     else {
-        // Inicializar si no existe
         for (int i = 0; i < MAX_SCORES; i++) {
             strcpy_s(mejoresPuntajes[i].nombre, 16, "-----");
             mejoresPuntajes[i].puntaje = 0;
@@ -78,71 +122,57 @@ void GuardarPuntajes() {
     }
 }
 
-// --- ORDENAMIENTO BURBUJA EN ASM (CORREGIDO "PTR") ---
+// Algoritmo de Ordenamiento (ASM)
 void OrdenarPuntajesASM() {
-    // CAMBIO: 'pLista' en lugar de 'ptr' para evitar error de sintaxis ASM
     Jugador* pLista = mejoresPuntajes;
     int n = MAX_SCORES;
 
     __asm {
         mov esi, pLista
-
-        ; Loop Externo(i = 0 a n - 1)
         mov ecx, n
         dec ecx
         LoopExterno :
         push ecx
-
             mov edi, esi
             mov ebx, n
             dec ebx
-
             LoopInterno :
-        ; Comparar scores : [edi + 16] vs[edi + 20 + 16]
-            mov eax, [edi + 16]
+        mov eax, [edi + 16]
             mov edx, [edi + 20 + 16]
-
             cmp eax, edx
             jge NoSwap
 
-            ; --- SWAP(Intercambio manual de 20 bytes) -- -
-            ; Swap Puntaje(4 bytes)
+            ; SWAP(20 bytes)
             mov[edi + 16], edx
             mov[edi + 20 + 16], eax
 
-            ; Swap Nombre(16 bytes = 4 bloques de 4 bytes)
             mov eax, [edi]
             mov edx, [edi + 20]
             mov[edi], edx
-            mov[edi + 20], eax // Bloque 1
-
+            mov[edi + 20], eax
             mov eax, [edi + 4]
             mov edx, [edi + 24]
             mov[edi + 4], edx
-            mov[edi + 24], eax // Bloque 2
-
+            mov[edi + 24], eax
             mov eax, [edi + 8]
             mov edx, [edi + 28]
             mov[edi + 8], edx
-            mov[edi + 28], eax // Bloque 3
-
+            mov[edi + 28], eax
             mov eax, [edi + 12]
             mov edx, [edi + 32]
             mov[edi + 12], edx
-            mov[edi + 32], eax // Bloque 4
-
+            mov[edi + 32], eax
             NoSwap :
-        add edi, 20; Siguiente struct
+        add edi, 20
             dec ebx
             jnz LoopInterno
-
             pop ecx
             dec ecx
             jnz LoopExterno
     }
 }
 
-// --- HELPERS ---
+// Visuales
 void DibujarTextoCentrado(SDL_Renderer* r, TTF_Font* f, const char* texto, int y, SDL_Color c) {
     if (!f || !texto || strlen(texto) == 0) return;
     SDL_Surface* surf = TTF_RenderText_Blended(f, texto, 0, c);
@@ -173,42 +203,39 @@ int main(int argc, char* argv[]) {
     if (!SDL_Init(SDL_INIT_VIDEO)) return 1;
     if (TTF_Init() < 0) return 1;
 
-    // 1. CARGA SEGURA DE DATOS
     CargarPuntajes();
 
     SDL_Window* ventana = NULL;
     SDL_Renderer* renderer = NULL;
-    if (!SDL_CreateWindowAndRenderer("Breakout - ASM Edition", ANCHO_VENTANA, ALTO_VENTANA, 0, &ventana, &renderer)) return 1;
+    if (!SDL_CreateWindowAndRenderer("Breakout - ASM Levels Edition", ANCHO_VENTANA, ALTO_VENTANA, 0, &ventana, &renderer)) return 1;
 
-    // Cargar Fuentes (Fallback seguro)
+    // Fuentes
     TTF_Font* fontRetro = TTF_OpenFont("RETRO.TTF", 35);
     TTF_Font* fontTitulo = TTF_OpenFont("RETRO.TTF", 80);
     if (!fontRetro) fontRetro = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 35);
     if (!fontTitulo) fontTitulo = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 80);
 
-    // Variables de Estado
+    // Variables Juego
     int estado_actual = ESTADO_MENU;
     int corriendo = 1;
     int vidas = 3;
     int puntaje = 0;
 
-    // Objetos
     SDL_FRect paddle = { (ANCHO_VENTANA - PADDLE_ANCHO) / 2, ALTO_VENTANA - 60.0f, PADDLE_ANCHO, PADDLE_ALTO };
     SDL_FRect pelota = { ANCHO_VENTANA / 2, ALTO_VENTANA / 2, PELOTA_TAM, PELOTA_TAM };
-    float vel_x = 6.0f;
-    float vel_y = -6.0f;
+
+    // Velocidad inicial
+    float vel_x = VEL_BASE;
+    float vel_y = -VEL_BASE;
 
     // Ladrillos
     Ladrillo ladrillos[FILAS * COLUMNAS];
+    // Colores por fila
     SDL_Color coloresFilas[6] = { {210,50,50,255}, {210,140,50,255}, {200,200,50,255}, {50,180,50,255}, {50,100,200,255}, {150,50,200,255} };
-    int count = 0;
-    for (int i = 0; i < FILAS; i++) {
-        for (int j = 0; j < COLUMNAS; j++) {
-            ladrillos[count].rect = (SDL_FRect){ LADRILLO_OFFSET_X + (j * (LADRILLO_ANCHO + LADRILLO_ESPACIO)), LADRILLO_OFFSET_Y + (i * (LADRILLO_ALTO + LADRILLO_ESPACIO)), LADRILLO_ANCHO, LADRILLO_ALTO };
-            ladrillos[count].activo = true;
-            count++;
-        }
-    }
+
+    // Cargar Nivel 1 al inicio
+    nivelActual = 1;
+    CargarNivel(ladrillos, nivelActual);
 
     // Inputs
     int input_enter = 0, input_esc = 0;
@@ -219,28 +246,22 @@ int main(int argc, char* argv[]) {
 
     // --- BUCLE PRINCIPAL ---
     while (corriendo) {
-        input_enter = 0;
-        input_esc = 0;
+        input_enter = 0; input_esc = 0;
 
         // 1. EVENTOS
         while (SDL_PollEvent(&evento)) {
             if (evento.type == SDL_EVENT_QUIT) corriendo = 0;
 
-            // Texto (Solo si estamos en la pantalla de input)
             if (estado_actual == ESTADO_INPUT_NOMBRE && evento.type == SDL_EVENT_TEXT_INPUT) {
-                if (strlen(inputText) < 15) {
-                    strcat_s(inputText, 16, evento.text.text);
-                }
+                if (strlen(inputText) < 15) strcat_s(inputText, 16, evento.text.text);
             }
 
             if (evento.type == SDL_EVENT_KEY_DOWN) {
                 if (evento.key.key == SDLK_RETURN) input_enter = 1;
                 if (evento.key.key == SDLK_ESCAPE) input_esc = 1;
 
-                // ATAJO TAB: Solo funciona si estamos en el MENU
-                if (evento.key.key == SDLK_TAB && estado_actual == ESTADO_MENU) {
-                    estado_actual = ESTADO_MEJORES;
-                }
+                // ATAJO TAB: Solo en MENU
+                if (evento.key.key == SDLK_TAB && estado_actual == ESTADO_MENU) estado_actual = ESTADO_MEJORES;
 
                 if (estado_actual == ESTADO_INPUT_NOMBRE && evento.key.key == SDLK_BACKSPACE) {
                     int len = (int)strlen(inputText);
@@ -252,7 +273,6 @@ int main(int argc, char* argv[]) {
         // 2. LÓGICA DE ESTADOS (ASM)
         __asm {
             mov eax, estado_actual
-
             cmp eax, ESTADO_MENU
             je LogicaMenu
             cmp eax, ESTADO_JUGANDO
@@ -320,44 +340,39 @@ int main(int argc, char* argv[]) {
                 mov estado_actual, ESTADO_MENU
                 mov vidas, 3
                 mov puntaje, 0
-
                 FinLogica :
         }
 
-        // 3. LOGICA AUXILIAR EN C (GUARDADO)
+        // 3. LOGICA AUXILIAR EN C (Transiciones complejas)
         if (estado_actual == ESTADO_MEJORES && input_enter) {
-            // CORRECCIÓN: Pasar 'ventana' como argumento
             SDL_StopTextInput(ventana);
-
             if (strlen(inputText) == 0) strcpy_s(inputText, 16, "ANONIMO");
             strcpy_s(mejoresPuntajes[MAX_SCORES - 1].nombre, 16, inputText);
             mejoresPuntajes[MAX_SCORES - 1].puntaje = puntaje;
-
             OrdenarPuntajesASM();
             GuardarPuntajes();
             strcpy_s(inputText, 16, "");
         }
 
-        // Activar Teclado
-        if (estado_actual == ESTADO_INPUT_NOMBRE && !SDL_TextInputActive(ventana)) {
-            SDL_StartTextInput(ventana);
-        }
+        if (estado_actual == ESTADO_INPUT_NOMBRE && !SDL_TextInputActive(ventana)) SDL_StartTextInput(ventana);
 
-        // Reset Juego al salir al menu
         if (estado_actual == ESTADO_MENU && input_esc) {
+            // Reset Total
             pelota.x = ANCHO_VENTANA / 2; pelota.y = ALTO_VENTANA / 2;
-            vel_y = -6.0f; vel_x = 6.0f;
-            for (int i = 0; i < FILAS * COLUMNAS; i++) ladrillos[i].activo = true;
+            vel_x = VEL_BASE; vel_y = -VEL_BASE;
+            nivelActual = 1;
+            CargarNivel(ladrillos, nivelActual);
         }
 
         // 4. FÍSICA (ASM) - Solo Jugando
         if (estado_actual == ESTADO_JUGANDO) {
             float temp_px = paddle.x;
-            float temp_pv = PADDLE_VEL;
+            float temp_pv = VEL_BASE * 1.5f; // Paddle un poco más rápido que la bola base
             int dir_paddle = 0;
             if (teclas[SDL_SCANCODE_RIGHT]) dir_paddle = 1;
             if (teclas[SDL_SCANCODE_LEFT])  dir_paddle = -1;
 
+            // Movimiento Paddle ASM
             if (dir_paddle != 0) {
                 __asm {
                     fld temp_px
@@ -373,6 +388,7 @@ int main(int argc, char* argv[]) {
             if (paddle.x < 0) paddle.x = 0;
             if (paddle.x + paddle.w > ANCHO_VENTANA) paddle.x = ANCHO_VENTANA - paddle.w;
 
+            // Movimiento Pelota ASM
             __asm {
                 fld pelota.x
                 fadd vel_x
@@ -391,7 +407,7 @@ int main(int argc, char* argv[]) {
                 pelota.y = paddle.y - PELOTA_TAM - 1.0f;
             }
 
-            // Rebote Ladrillos
+            // Rebote Ladrillos y Lógica de Niveles
             for (int i = 0; i < FILAS * COLUMNAS; i++) {
                 if (!ladrillos[i].activo) continue;
                 SDL_FRect b = ladrillos[i].rect;
@@ -399,6 +415,23 @@ int main(int argc, char* argv[]) {
                     ladrillos[i].activo = false;
                     puntaje += 100;
                     vel_y = -vel_y;
+
+                    // --- NIVEL COMPLETADO? ---
+                    ladrillosRestantes--;
+                    if (ladrillosRestantes <= 0) {
+                        nivelActual++;
+                        if (nivelActual > 10) nivelActual = 1;
+
+                        CargarNivel(ladrillos, nivelActual);
+
+                        // Reset Pelota y aumentar dificultad
+                        pelota.x = ANCHO_VENTANA / 2; pelota.y = ALTO_VENTANA / 2;
+                        float factor = 1.0f + (nivelActual * 0.15f); // 15% más rápido por nivel
+                        vel_x = VEL_BASE * factor;
+                        vel_y = -VEL_BASE * factor;
+
+                        SDL_Delay(500); // Pausa breve
+                    }
                 }
             }
 
@@ -407,7 +440,8 @@ int main(int argc, char* argv[]) {
             if (pelota.y > ALTO_VENTANA) {
                 vidas--;
                 pelota.x = ANCHO_VENTANA / 2; pelota.y = ALTO_VENTANA / 2;
-                vel_y = -6.0f;
+                // Resetear velocidad al perder vida (para que no sea injusto)
+                vel_y = -VEL_BASE * (1.0f + (nivelActual * 0.1f));
                 SDL_Delay(500);
             }
         }
@@ -416,8 +450,8 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 15, 15, 25, 255);
         SDL_RenderClear(renderer);
 
-        // Capa Juego
         if (estado_actual == ESTADO_JUGANDO || estado_actual == ESTADO_PAUSA || estado_actual == ESTADO_GAMEOVER) {
+            // Dibujar Nivel
             int idx = 0;
             for (int i = 0; i < FILAS; i++) {
                 SDL_SetRenderDrawColor(renderer, coloresFilas[i].r, coloresFilas[i].g, coloresFilas[i].b, 255);
@@ -431,12 +465,16 @@ int main(int argc, char* argv[]) {
             SDL_SetRenderDrawColor(renderer, 255, 50, 50, 255);
             SDL_RenderFillRect(renderer, &pelota);
 
+            // HUD
             char buf[50]; sprintf_s(buf, 50, "SCORE: %05d", puntaje);
             DibujarTextoCentrado(renderer, fontRetro, buf, 20, colorBlanco);
+            char bufNivel[20]; sprintf_s(bufNivel, 20, "NIVEL: %d", nivelActual);
+            DibujarTextoCentrado(renderer, fontRetro, bufNivel, 60, colorAmarillo);
+
             for (int i = 0; i < vidas; i++) DibujarCorazon(renderer, ANCHO_VENTANA - 60.0f - (i * 50.0f), 25.0f, 1.5f);
         }
 
-        // Capa UI
+        // UI Interfaces
         if (estado_actual == ESTADO_MENU) {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
@@ -457,7 +495,7 @@ int main(int argc, char* argv[]) {
             DibujarTextoCentrado(renderer, fontTitulo, "GAME OVER", 300, colorBlanco);
             char buf[50]; sprintf_s(buf, 50, "Puntaje Final: %05d", puntaje);
             DibujarTextoCentrado(renderer, fontRetro, buf, 450, colorBlanco);
-            DibujarTextoCentrado(renderer, fontRetro, "Presiona ENTER para Guardar", 600, colorAmarillo);
+            DibujarTextoCentrado(renderer, fontRetro, "ENTER para Guardar", 600, colorAmarillo);
         }
         else if (estado_actual == ESTADO_INPUT_NOMBRE) {
             SDL_SetRenderDrawColor(renderer, 20, 20, 60, 255);
@@ -469,16 +507,13 @@ int main(int argc, char* argv[]) {
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
             SDL_RenderFillRect(renderer, &linea);
 
-            if (strlen(inputText) > 0)
-                DibujarTextoCentrado(renderer, fontTitulo, inputText, 420, colorBlanco);
-            else
-                DibujarTextoCentrado(renderer, fontRetro, "_", 420, colorBlanco);
+            if (strlen(inputText) > 0) DibujarTextoCentrado(renderer, fontTitulo, inputText, 420, colorBlanco);
+            else DibujarTextoCentrado(renderer, fontRetro, "_", 420, colorBlanco);
         }
         else if (estado_actual == ESTADO_MEJORES) {
             SDL_SetRenderDrawColor(renderer, 10, 10, 10, 255);
             SDL_RenderClear(renderer);
             DibujarTextoCentrado(renderer, fontTitulo, "HALL OF FAME", 50, colorAmarillo);
-
             for (int i = 0; i < MAX_SCORES; i++) {
                 char lineaScore[60];
                 sprintf_s(lineaScore, 60, "%d. %s   -   %05d", i + 1, mejoresPuntajes[i].nombre, mejoresPuntajes[i].puntaje);
