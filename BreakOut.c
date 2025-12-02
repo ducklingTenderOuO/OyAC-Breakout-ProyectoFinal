@@ -14,13 +14,15 @@ const int ALTO_VENTANA = 900;
 #define MAX_VIDAS 5
 #define PUNTAJE_VIDA_EXTRA 5000
 
-// Estados
+// Estados del Juego
 #define ESTADO_MENU         0
 #define ESTADO_JUGANDO      1
 #define ESTADO_PAUSA        2
 #define ESTADO_GAMEOVER     3
 #define ESTADO_INPUT_NOMBRE 4
 #define ESTADO_MEJORES      5
+#define ESTADO_CREDITOS     6
+#define ESTADO_VICTORIA     7
 
 // --- AJUSTES DE BALANCE FINAL ---
 const float PADDLE_ANCHO = 200.0f;
@@ -34,7 +36,8 @@ const float PELOTA_TAM = 26.0f;
 const float LADRILLO_ANCHO = 120.0f;
 const float LADRILLO_ALTO = 40.0f;
 const float LADRILLO_ESPACIO = 10.0f;
-const float LADRILLO_OFFSET_X = (1400 - (10 * (120 + 10))) / 2.0f + 5.0f;
+// Conversión explícita a float para evitar warnings C4244
+const float LADRILLO_OFFSET_X = (1400.0f - (10.0f * (120.0f + 10.0f))) / 2.0f + 5.0f;
 const float LADRILLO_OFFSET_Y = 150.0f;
 
 // --- ESTRUCTURAS ---
@@ -75,14 +78,15 @@ int proximaVida = PUNTAJE_VIDA_EXTRA;
 // FUNCIONES
 void CargarNivel(Ladrillo* ladrillos, int nivel) {
     if (nivel < 1) nivel = 1; if (nivel > 10) nivel = 1;
-    int mapIdx = nivel - 1;
+    int mapIdx = (nivel - 1) % 10;
     int count = 0;
     ladrillosRestantes = 0;
 
     for (int i = 0; i < FILAS; i++) {
         for (int j = 0; j < COLUMNAS; j++) {
-            ladrillos[count].rect.x = LADRILLO_OFFSET_X + (j * (LADRILLO_ANCHO + LADRILLO_ESPACIO));
-            ladrillos[count].rect.y = LADRILLO_OFFSET_Y + (i * (LADRILLO_ALTO + LADRILLO_ESPACIO));
+            // Conversión explícita a float
+            ladrillos[count].rect.x = LADRILLO_OFFSET_X + ((float)j * (LADRILLO_ANCHO + LADRILLO_ESPACIO));
+            ladrillos[count].rect.y = LADRILLO_OFFSET_Y + ((float)i * (LADRILLO_ALTO + LADRILLO_ESPACIO));
             ladrillos[count].rect.w = LADRILLO_ANCHO;
             ladrillos[count].rect.h = LADRILLO_ALTO;
             ladrillos[count].filaIdx = i;
@@ -164,7 +168,7 @@ void DibujarTextoCentrado(SDL_Renderer* r, TTF_Font* f, const char* texto, int y
     SDL_Surface* surf = TTF_RenderText_Blended(f, texto, 0, c);
     if (surf) {
         SDL_Texture* tex = SDL_CreateTextureFromSurface(r, surf);
-        SDL_FRect rect = { (ANCHO_VENTANA - surf->w) / 2.0f, (float)y, (float)surf->w, (float)surf->h };
+        SDL_FRect rect = { (ANCHO_VENTANA - (float)surf->w) / 2.0f, (float)y, (float)surf->w, (float)surf->h };
         SDL_RenderTexture(r, tex, NULL, &rect);
         SDL_DestroyTexture(tex);
         SDL_DestroySurface(surf);
@@ -177,7 +181,7 @@ void DibujarCorazon(SDL_Renderer* renderer, float x, float y, float escala) {
     for (int fil = 0; fil < 5; fil++) {
         for (int col = 0; col < 7; col++) {
             if (forma[fil][col] == 1) {
-                SDL_FRect pixel = { x + (col * 5 * escala), y + (fil * 5 * escala), 5 * escala, 5 * escala };
+                SDL_FRect pixel = { x + ((float)col * 5.0f * escala), y + ((float)fil * 5.0f * escala), 5.0f * escala, 5.0f * escala };
                 SDL_RenderFillRect(renderer, &pixel);
             }
         }
@@ -196,10 +200,16 @@ int main(int argc, char* argv[]) {
     SDL_Renderer* renderer = NULL;
     if (!SDL_CreateWindowAndRenderer("Breakout - Astrid Jimenez & Erick Moya", ANCHO_VENTANA, ALTO_VENTANA, 0, &ventana, &renderer)) return 1;
 
+    // CARGA DE FUENTES
     TTF_Font* fontRetro = TTF_OpenFont("RETRO.TTF", 35);
     TTF_Font* fontTitulo = TTF_OpenFont("RETRO.TTF", 80);
+    // USAMOS RETRO.TTF PARA CRÉDITOS COMO PEDISTE
+    TTF_Font* fontCreditos = TTF_OpenFont("RETRO.TTF", 30);
+
+    // Fallback a Arial si no existe RETRO
     if (!fontRetro) fontRetro = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 35);
     if (!fontTitulo) fontTitulo = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 80);
+    if (!fontCreditos) fontCreditos = TTF_OpenFont("C:\\Windows\\Fonts\\arial.ttf", 30);
 
     int estado_actual = ESTADO_MENU;
     int corriendo = 1;
@@ -223,6 +233,8 @@ int main(int argc, char* argv[]) {
     const bool* teclas = SDL_GetKeyboardState(NULL);
     SDL_Color colorBlanco = { 255, 255, 255, 255 };
     SDL_Color colorAmarillo = { 255, 255, 0, 255 };
+    SDL_Color colorRosa = { 255, 100, 200, 255 };
+    SDL_Color colorArduino = { 0, 151, 157, 255 };
 
     while (corriendo) {
         input_enter = 0; input_esc = 0;
@@ -235,7 +247,13 @@ int main(int argc, char* argv[]) {
             if (evento.type == SDL_EVENT_KEY_DOWN) {
                 if (evento.key.key == SDLK_RETURN) input_enter = 1;
                 if (evento.key.key == SDLK_ESCAPE) input_esc = 1;
-                if (evento.key.key == SDLK_TAB && estado_actual == ESTADO_MENU) estado_actual = ESTADO_MEJORES;
+
+                if (estado_actual == ESTADO_MENU) {
+                    if (evento.key.key == SDLK_TAB) estado_actual = ESTADO_MEJORES;
+                    // FIX: SDLK_C (Mayúscula) para SDL3
+                    if (evento.key.key == SDLK_C) estado_actual = ESTADO_CREDITOS;
+                }
+
                 if (estado_actual == ESTADO_INPUT_NOMBRE && evento.key.key == SDLK_BACKSPACE) {
                     int len = (int)strlen(inputText);
                     if (len > 0) inputText[len - 1] = '\0';
@@ -258,6 +276,10 @@ int main(int argc, char* argv[]) {
             je LogicaInput
             cmp eax, ESTADO_MEJORES
             je LogicaMejores
+            cmp eax, ESTADO_CREDITOS
+            je LogicaCreditos
+            cmp eax, ESTADO_VICTORIA
+            je LogicaVictoria
             jmp FinLogica
             LogicaMenu :
             cmp input_esc, 1
@@ -302,6 +324,23 @@ int main(int argc, char* argv[]) {
                 mov estado_actual, ESTADO_MEJORES
                 jmp FinLogica
                 LogicaMejores :
+            cmp input_esc, 1
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+                mov vidas, 3
+                mov puntaje, 0
+                jmp FinLogica
+                LogicaCreditos :
+            cmp input_esc, 1
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+                jmp FinLogica
+                LogicaVictoria :
+            cmp input_enter, 1
+                jne CheckExitWin
+                mov estado_actual, ESTADO_INPUT_NOMBRE
+                jmp FinLogica
+                CheckExitWin :
             cmp input_esc, 1
                 jne FinLogica
                 mov estado_actual, ESTADO_MENU
@@ -365,37 +404,30 @@ int main(int argc, char* argv[]) {
             float ball_r = pelota.x + PELOTA_TAM; float ball_b = pelota.y + PELOTA_TAM;
             float pad_r = paddle.x + PADDLE_ANCHO; float pad_b = paddle.y + PADDLE_ALTO;
 
-            // --- NUEVA FISICA NATURAL CON PERTURBACIÓN ALEATORIA (ASM) ---
+            // FISICA CON PERTURBACION ALEATORIA (ASM)
             if (ball_r >= paddle.x && pelota.x <= pad_r && ball_b >= paddle.y && pelota.y <= pad_b) {
-                // Generamos un numero aleatorio pequeño entre -1.5 y 1.5 en C
                 float perturbacion = ((float)(rand() % 300) / 100.0f) - 1.5f;
 
                 __asm {
-                    ; 1. Rebote natural en Y
                     fld vel_y
                     fabs
-                    fchs; Negativo = Arriba
+                    fchs
                     fstp vel_y
 
-                    ; 2. Añadir perturbacion aleatoria a X
                     fld vel_x
                     fadd perturbacion
                     fstp vel_x
                 }
-                // Evitamos que la pelota se quede horizontal
                 if (fabs(vel_x) < 2.0f) vel_x = (vel_x >= 0) ? 2.0f : -2.0f;
-
                 pelota.y = paddle.y - PELOTA_TAM - 2.0f;
             }
 
-            // Rebote Ladrillos
             for (int i = 0; i < FILAS * COLUMNAS; i++) {
                 if (!ladrillos[i].activo) continue;
                 SDL_FRect b = ladrillos[i].rect;
                 if (ball_r >= b.x && pelota.x <= b.x + b.w && ball_b >= b.y && pelota.y <= b.y + b.h) {
                     ladrillos[i].resistencia--;
-                    vel_y = -vel_y; // Rebote simple
-
+                    vel_y = -vel_y;
                     if (ladrillos[i].resistencia <= 0) {
                         ladrillos[i].activo = false;
                         puntaje += 100;
@@ -420,14 +452,20 @@ int main(int argc, char* argv[]) {
 
                         if (ladrillosRestantes <= 0) {
                             nivelActual++;
-                            if (nivelActual > 10) nivelActual = 1;
-                            CargarNivel(ladrillos, nivelActual);
-                            pelota.x = ANCHO_VENTANA / 2; pelota.y = ALTO_VENTANA / 2;
-                            float factor = 1.0f + (nivelActual * 0.15f);
-                            float nuevaVel = VEL_BASE * factor;
-                            vel_x = (rand() % 2 == 0) ? nuevaVel : -nuevaVel;
-                            vel_y = -nuevaVel;
-                            SDL_Delay(500);
+                            if (nivelActual > 10) {
+                                // --- VICTORIA ---
+                                estado_actual = ESTADO_VICTORIA;
+                            }
+                            else {
+                                // SIGUIENTE NIVEL
+                                CargarNivel(ladrillos, nivelActual);
+                                pelota.x = ANCHO_VENTANA / 2; pelota.y = ALTO_VENTANA / 2;
+                                float factor = 1.0f + ((float)nivelActual * 0.15f);
+                                float nuevaVel = VEL_BASE * factor;
+                                vel_x = (rand() % 2 == 0) ? nuevaVel : -nuevaVel;
+                                vel_y = -nuevaVel;
+                                SDL_Delay(500);
+                            }
                         }
                     }
                 }
@@ -438,7 +476,7 @@ int main(int argc, char* argv[]) {
             if (pelota.y > ALTO_VENTANA) {
                 vidas--;
                 pelota.x = ANCHO_VENTANA / 2; pelota.y = ALTO_VENTANA / 2;
-                float velActual = VEL_BASE * (1.0f + (nivelActual * 0.1f));
+                float velActual = VEL_BASE * (1.0f + ((float)nivelActual * 0.1f));
                 vel_y = -velActual;
                 vel_x = (rand() % 2 == 0) ? velActual : -velActual;
                 SDL_Delay(500);
@@ -449,7 +487,7 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 15, 15, 25, 255);
         SDL_RenderClear(renderer);
 
-        if (estado_actual == ESTADO_JUGANDO || estado_actual == ESTADO_PAUSA || estado_actual == ESTADO_GAMEOVER) {
+        if (estado_actual == ESTADO_JUGANDO || estado_actual == ESTADO_PAUSA || estado_actual == ESTADO_GAMEOVER || estado_actual == ESTADO_VICTORIA) {
             int idx = 0;
             for (int i = 0; i < FILAS; i++) {
                 SDL_Color cFila = coloresFilas[i];
@@ -475,7 +513,7 @@ int main(int argc, char* argv[]) {
             char bufNivel[20]; sprintf_s(bufNivel, 20, "NIVEL: %d", nivelActual);
             DibujarTextoCentrado(renderer, fontRetro, bufNivel, 60, colorAmarillo);
 
-            for (int i = 0; i < vidas; i++) DibujarCorazon(renderer, ANCHO_VENTANA - 60.0f - (i * 50.0f), 25.0f, 1.5f);
+            for (int i = 0; i < vidas; i++) DibujarCorazon(renderer, ANCHO_VENTANA - 60.0f - ((float)i * 50.0f), 25.0f, 1.5f);
         }
 
         if (estado_actual == ESTADO_MENU) {
@@ -484,7 +522,8 @@ int main(int argc, char* argv[]) {
             DibujarTextoCentrado(renderer, fontTitulo, "BREAKOUT", 150, colorBlanco);
             DibujarTextoCentrado(renderer, fontRetro, "JUGAR (ENTER)", 400, colorBlanco);
             DibujarTextoCentrado(renderer, fontRetro, "MEJORES PUNTUACIONES (TAB)", 500, colorAmarillo);
-            DibujarTextoCentrado(renderer, fontRetro, "SALIR (ESC)", 600, colorBlanco);
+            DibujarTextoCentrado(renderer, fontRetro, "CREDITOS (C)", 600, colorAmarillo);
+            DibujarTextoCentrado(renderer, fontRetro, "SALIR (ESC)", 700, colorBlanco);
         }
         else if (estado_actual == ESTADO_PAUSA) {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 150);
@@ -499,6 +538,18 @@ int main(int argc, char* argv[]) {
             char buf[50]; sprintf_s(buf, 50, "Puntaje Final: %05d", puntaje);
             DibujarTextoCentrado(renderer, fontRetro, buf, 450, colorBlanco);
             DibujarTextoCentrado(renderer, fontRetro, "ENTER para Guardar", 600, colorAmarillo);
+        }
+        else if (estado_actual == ESTADO_VICTORIA) {
+            SDL_SetRenderDrawColor(renderer, 0, 50, 0, 200);
+            SDL_RenderFillRect(renderer, NULL);
+
+            DibujarTextoCentrado(renderer, fontTitulo, "¡ VICTORIA !", 250, colorAmarillo);
+            DibujarTextoCentrado(renderer, fontRetro, "¡Has completado los 10 niveles!", 400, colorBlanco);
+
+            char buf[50]; sprintf_s(buf, 50, "Puntaje Final: %05d", puntaje);
+            DibujarTextoCentrado(renderer, fontRetro, buf, 500, colorBlanco);
+
+            DibujarTextoCentrado(renderer, fontRetro, "Presiona ENTER para Registrar Record", 650, colorArduino);
         }
         else if (estado_actual == ESTADO_INPUT_NOMBRE) {
             SDL_SetRenderDrawColor(renderer, 20, 20, 60, 255);
@@ -523,6 +574,19 @@ int main(int argc, char* argv[]) {
             }
             DibujarTextoCentrado(renderer, fontRetro, "VOLVER (ESC)", 800, colorBlanco);
         }
+        else if (estado_actual == ESTADO_CREDITOS) {
+            SDL_SetRenderDrawColor(renderer, 10, 10, 10, 255);
+            SDL_RenderClear(renderer);
+            DibujarTextoCentrado(renderer, fontTitulo, "CREDITOS", 50, colorAmarillo);
+
+            // Usando fuente Retro con caracteres Unicode
+            // ♥ = \xE2\x99\xA5  (Corazón)
+            // ★ = \xE2\x98\x85  (Estrella Sólida)
+            DibujarTextoCentrado(renderer, fontCreditos, "1. \xE2\x99\xA5 Astrid Yamilet Jimenez Barrera \xE2\x99\xA5", 350, colorRosa);
+            DibujarTextoCentrado(renderer, fontCreditos, "2. \xE2\x98\x85 Erick Anselmo Moya Monreal \xE2\x98\x85", 450, colorArduino);
+
+            DibujarTextoCentrado(renderer, fontRetro, "VOLVER (ESC)", 800, colorBlanco);
+        }
 
         SDL_RenderPresent(renderer);
         SDL_Delay(16);
@@ -530,6 +594,7 @@ int main(int argc, char* argv[]) {
 
     if (fontRetro) TTF_CloseFont(fontRetro);
     if (fontTitulo) TTF_CloseFont(fontTitulo);
+    if (fontCreditos) TTF_CloseFont(fontCreditos);
     TTF_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(ventana);
