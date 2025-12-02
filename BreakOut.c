@@ -481,7 +481,7 @@ int main(int argc, char* argv[]) {
         if (estado_actual == ESTADO_MENU) {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderClear(renderer);
-            DibujarTextoCentrado(renderer, fontTitulo, "ASM BREAKOUT", 150, colorBlanco);
+            DibujarTextoCentrado(renderer, fontTitulo, "BREAKOUT", 150, colorBlanco);
             DibujarTextoCentrado(renderer, fontRetro, "JUGAR (ENTER)", 400, colorBlanco);
             DibujarTextoCentrado(renderer, fontRetro, "MEJORES PUNTUACIONES (TAB)", 500, colorAmarillo);
             DibujarTextoCentrado(renderer, fontRetro, "SALIR (ESC)", 600, colorBlanco);
