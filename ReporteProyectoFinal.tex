@@ -83,7 +83,7 @@
             \vspace{1.5cm}
             
             \textbf{Profesor:}\\
-            Omar Munoz Urias
+            Omar Muñoz Urias
             
             \vfill
             
@@ -98,14 +98,14 @@
     
     \newpage
     
-    \section{Introduccion}
+    \section{Introducci\'on}
     
-    El presente proyecto fue desarrollado como parte final del curso de Organizacion y Arquitectura de Computadoras. Consiste en la implementacion de un videojuego completo tipo "Breakout", el cual esta escrito utilizando una combinacion de lenguaje C con la libreria SDL3 para la gestion grafica, y ensamblador MASM x86 inline para la programacion de la logica interna del juego.
+    El presente proyecto fue desarrollado como parte final del curso de Organizaci\'on y Arquitectura de Computadoras. Consiste en la implementaci\'on de un videojuego completo tipo ``Breakout'', el cual est\'a escrito utilizando una combinaci\'on de lenguaje C con la librer\'ia SDL3 para la gesti\'on gr\'afica, y ensamblador MASM x86 inline para la programaci\'on de la l\'ogica interna del juego.
     
-    La arquitectura del proyecto se dividio en dos capas principales:
+    La arquitectura del proyecto se dividió en dos capas principales:
     \begin{itemize}
-        \item \textbf{Capa de alto nivel (C):} Responsable de inicializar la ventana de juego, renderizar los graficos en pantalla, capturar eventos del teclado y gestionar el bucle principal del juego.
-        \item \textbf{Capa de bajo nivel (Ensamblador):} Responsable de la logica central del juego. Aqui se programa el calculo del movimiento de la pelota, la deteccion de colisiones, y el manejo directo de estructuras de datos en memoria para gestionar los puntajes.
+        \item \textbf{Capa de alto nivel (C):} Responsable de inicializar la ventana de juego, renderizar los gráficos en pantalla, capturar eventos del teclado y gestionar el bucle principal del juego.
+        \item \textbf{Capa de bajo nivel (Ensamblador):} Responsable de la lógica central del juego. Aquí se programa el cálculo del movimiento de la pelota, la detección de colisiones, y el manejo directo de estructuras de datos en memoria para gestionar los puntajes.
     \end{itemize}
     
     El objetivo general de la practica fue demostrar la viabilidad de integrar lenguajes de programacion de alto y bajo nivel para crear un sistema eficiente y funcional. Adicionalmente, se busco aplicar de manera practica los conocimientos adquiridos durante el semestre, tales como:
@@ -119,18 +119,18 @@
     
     Finalmente, este proyecto permite visualizar de manera practica como las instrucciones basicas del procesador (operaciones aritmeticas, logicas y de control de flujo) que pueden ser implementadas en ensamblador, interactuan para producir un entorno grafico interactivo en tiempo real.
     
-    \section{Problematica y justificacion}
+    \section{Problema\' atica y justificaci\'on}
     
-    La problematica central que motiva este proyecto radica en el cumplimiento de los requerimientos estrictos establecidos para el proyecto final del curso de Organizacion y Arquitectura de Computadoras. El desafio principal consistio en idear y desarrollar una aplicacion que lograra la convergencia entre un lenguaje de alto nivel y el lenguaje ensamblador. Para la capa de alto nivel, se tomo la decision de utilizar el lenguaje C, debido a la experiencia previa y practica que se tiene con su sintaxis.
+    La problemática central que motiva este proyecto radica en el cumplimiento de los requerimientos estrictos establecidos para el proyecto final del curso de Organización y Arquitectura de Computadoras. El desafío principal consistió en idear y desarrollar una aplicación que lograra la convergencia entre un lenguaje de alto nivel y el lenguaje ensamblador. Para la capa de alto nivel, se tomó la decisión de utilizar el lenguaje C, debido a la experiencia previa y práctica que se tiene con su sintaxis.
     
-    Sin embargo, dado que las especificaciones del proyecto prohibian explicitamente el uso de la terminal para la interfaz de usuario y exigian un entorno grafico, fue necesario implementar la biblioteca externa SDL3. La integracion de esta herramienta represento un reto tecnico considerable durante la etapa de configuracion inicial; una vez superado este obstaculo, la problematica se traslado a la correcta codificacion de la logica interna para asegurar que ambos lenguajes operaran en conjunto.
+    Sin embargo, dado que las especificaciones del proyecto prohibían explícitamente el uso de la terminal para la interfaz de usuario y exigían un entorno gráfico, fue necesario implementar la biblioteca externa SDL3. La integración de esta herramienta representó un reto técnico considerable durante la etapa de configuración inicial; una vez superado este obstáculo, la problemática se trasladó a la correcta codificación de la lógica interna para asegurar que ambos lenguajes operaran en conjunto.
     
-    La justificacion para resolver esta problematica es primordialmente academica: completar el proyecto es el requisito indispensable para acreditar la materia. Mas alla de la calificacion, la realizacion de este videojuego sirve como el medio para demostrar tangiblemente la adquisicion de los conocimientos impartidos durante el semestre, probando que se tiene la capacidad de manipular manualmente los registros del procesador, controlar el flujo del programa y gestionar la memoria de manera eficiente en un entorno real.
+    La justificación para resolver esta problemática es primordialmente académica: completar el proyecto es el requisito indispensable para acreditar la materia. Más allá de la calificación, la realización de este videojuego sirve como el medio para demostrar tangiblemente la adquisición de los conocimientos impartidos durante el semestre, probando que se tiene la capacidad de manipular manualmente los registros del procesador, controlar el flujo del programa y gestionar la memoria de manera eficiente en un entorno real.
     
-    \section{Objetivos de la practica}
+    \section{Objetivos de la práctica}
     
     \subsection{Objetivo general}
-    Disenar e implementar una aplicacion de software hibrida que integre un lenguaje de alto nivel con rutinas de bajo nivel, con el proposito de demostrar la aplicacion practica de los conocimientos adquiridos en el curso de Organizacion y Arquitectura de Computadoras. El proyecto busca cumplir con los requerimientos de evaluacion mediante la creacion de un entorno grafico interactivo donde la logica critica sea gestionada directamente a traves de instrucciones de ensamblador.
+    Diseñar e implementar una aplicación de software híbrida que integre un lenguaje de alto nivel con rutinas de bajo nivel, con el propósito de demostrar la aplicación práctica de los conocimientos adquiridos en el curso de Organización y Arquitectura de Computadoras. El proyecto busca cumplir con los requerimientos de evaluación mediante la creación de un entorno gráfico interactivo donde la lógica crítica sea gestionada directamente a través de instrucciones de ensamblador.
     
     \subsection{Objetivos especificos}
     \begin{itemize}
@@ -144,9 +144,9 @@
         
     \end{itemize}
     
-    \section{Marco teorico}
+    \section{Marco teórico}
     
-    Para comprender la implementacion tecnica de este proyecto, es necesario definir los conceptos fundamentales de la arquitectura de computadoras y las herramientas de software utilizadas. A continuacion, se presentan las bases teoricas sobre la programacion hibrida, el manejo de memoria y los algoritmos empleados.
+    Para comprender la implementación técnica de este proyecto, es necesario definir los conceptos fundamentales de la arquitectura de computadoras y las herramientas de software utilizadas. A continuación, se presentan las bases teóricas sobre la programación híbrida, el manejo de memoria y los algoritmos empleados.
     
     \subsection{Libreria SDL (Simple DirectMedia Layer)}
     SDL es una biblioteca de desarrollo multiplataforma disenada para proporcionar acceso de bajo nivel al hardware de audio, teclado, raton, joystick y graficos a traves de OpenGL y Direct3D.
@@ -277,7 +277,7 @@
     \begin{lstlisting}[language=C, caption=Posicionamiento de ladrillos mediante offsets]
     // Dentro del ciclo de carga:
         __asm {
-        // Cálculo de coordenada X: (columna * ancho) + offset
+        // Calculo de coordenada X: (columna * ancho) + offset
         fld LADRILLO_ANCHO
         fadd LADRILLO_ESPACIO
         mov temp_int, edx      ; EDX contiene el indice de columna
@@ -288,12 +288,12 @@
     
         // ... Calculo similar para Y ...
     
-        // Asignación de propiedades directas en memoria
+        // Asignacion de propiedades directas en memoria
         mov eax, 1             ; Valor 'true'
         mov byte ptr [esi + 16], 1 ; Activa el ladrillo (offset 16 = bool activo)
         
         // Avanzar al siguiente ladrillo en el arreglo
-        add esi, 32            ; Suma 32 bytes (tamaño de struct Ladrillo)
+        add esi, 32            ; Suma 32 bytes (tamano de struct Ladrillo)
                                ; para apuntar al siguiente elemento
     }
     \end{lstlisting}
@@ -316,7 +316,7 @@
         mov [edi + 16], edx
         mov [edi + 20 + 16], eax
         
-        // Intercambio de nombres (4 bytes por ciclo debido al tamaño del char[])
+        // Intercambio de nombres (4 bytes por ciclo debido al tamano del char[])
         mov eax, [edi]; mov edx, [edi + 20]; 
         mov [edi], edx; mov [edi + 20], eax
         // ... continua intercambio del resto del nombre ...
