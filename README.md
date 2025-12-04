@@ -9,12 +9,12 @@ Este proyecto demuestra la integración eficiente entre lenguajes de alto nivel 
 
 | Menú Principal | Gameplay (Nivel 1) |
 |:---:|:---:|
-| ![Menú](https://github.com/user-attachments/assets/753c7f0f-b8cc-40cf-ba95-0fe1c8100c94) | ![Gameplay](https://github.com/user-attachments/assets/165bb9c3-bcfa-4c33-9c0c-3631cc51414d) |
+| ![Menú](https://github.com/user-attachments/assets/1f8b0d76-23e2-482d-9bdd-52c4cd767028) | ![Gameplay](https://github.com/user-attachments/assets/165bb9c3-bcfa-4c33-9c0c-3631cc51414d) |
 | *Acceso a modos y créditos* | *Física de rebote dinámica* |
 
 | Pantalla de Victoria | Créditos |
 |:---:|:---:|
-| ![Victoria](https://github.com/user-attachments/assets/13f9b34e-43ce-4e85-b316-f316426a8d08) | ![Créditos](https://github.com/user-attachments/assets/b3f93282-b019-43df-a18e-04f445b950a7) |
+| ![Victoria](https://github.com/user-attachments/assets/e5199888-28ce-424d-add2-075768032872) | ![Créditos](https://github.com/user-attachments/assets/b3f93282-b019-43df-a18e-04f445b950a7) |
 | *Mensaje al completar los 10 niveles* | *Reconocimiento a los autores* |
 
 ---
