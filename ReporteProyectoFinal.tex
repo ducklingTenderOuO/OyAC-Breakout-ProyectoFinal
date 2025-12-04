@@ -163,7 +163,7 @@ A nivel de hardware, el procesador ejecuta instrucciones de manera secuencial a 
 \end{itemize}
 
 \subsection{Direccionamiento de Memoria y Arreglos}
-La memoria RAM se organiza linealmente. Para acceder a elementos dentro de una estructura de datos o un arreglo, se utiliza el **direccionamiento indirecto base más desplazamiento**.
+La memoria RAM se organiza linealmente. Para acceder a elementos dentro de una estructura de datos o un arreglo, se utiliza el \textbf{direccionamiento indirecto base más desplazamiento}.
 \begin{itemize}
     \item \textbf{Principio:} Si un registro (como \texttt{ESI}) contiene la dirección base de un arreglo, se puede acceder al siguiente elemento sumando el tamaño del dato (offset). Por ejemplo, en un arreglo de enteros de 4 bytes, el segundo elemento se encuentra en \texttt{[ESI + 4]} \cite{tanenbaum}.
 \end{itemize}
@@ -176,7 +176,7 @@ Es un algoritmo de ordenamiento sencillo que funciona iterando repetidamente a t
 \end{itemize}
 
 \subsection{Unidad de Punto Flotante (FPU x87)}
-La FPU es un coprocesador dedicado a realizar operaciones con números reales (decimales). A diferencia de los registros generales (EAX, EBX), la FPU utiliza una **pila de registros** de 80 bits (\texttt{ST0} a \texttt{ST7}).
+La FPU es un coprocesador dedicado a realizar operaciones con números reales (decimales). A diferencia de los registros generales (EAX, EBX), la FPU utiliza una \textbf{pila de registros} de 80 bits (\texttt{ST0} a \texttt{ST7}).
 \begin{itemize}
     \item \textbf{Instrucciones clave:}
     \begin{itemize}
