@@ -1,4 +1,4 @@
-﻿#include <SDL3/SDL.h>
+#include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <ctype.h>
 
 float PADDLE_ANCHO = 200.0f;
 float VEL_PELOTA_BASE = 6.5f;
@@ -15,6 +16,7 @@ const int ANCHO_VENTANA = 1400;
 const int ALTO_VENTANA = 900;
 const float PADDLE_ALTO = 35.0f;
 const float PELOTA_TAM = 26.0f;
+
 const float LADRILLO_ANCHO = 120.0f;
 const float LADRILLO_ALTO = 40.0f;
 const float LADRILLO_ESPACIO = 10.0f;
@@ -100,40 +102,40 @@ void ActualizarDificultad() {
         je DifNormal
         jmp DifDificil
 
-        DifFacil:
+        DifFacil :
         mov VEL_PELOTA_BASE, 0x40A00000
-        mov PADDLE_ANCHO, 0x437A0000
-        jmp CheckPaddle
+            mov PADDLE_ANCHO, 0x437A0000
+            jmp CheckPaddle
 
-        DifNormal:
+            DifNormal :
         mov VEL_PELOTA_BASE, 0x40D00000
-        mov PADDLE_ANCHO, 0x43480000
-        jmp CheckPaddle
+            mov PADDLE_ANCHO, 0x43480000
+            jmp CheckPaddle
 
-        DifDificil:
+            DifDificil :
         mov VEL_PELOTA_BASE, 0x41080000
-        mov PADDLE_ANCHO, 0x43160000
+            mov PADDLE_ANCHO, 0x43160000
 
-        CheckPaddle:
-        mov eax, velPaddleIdx
-        cmp eax, 0
-        je PadLento
-        cmp eax, 1
-        je PadNormal
-        jmp PadRapido
+            CheckPaddle :
+            mov eax, velPaddleIdx
+            cmp eax, 0
+            je PadLento
+            cmp eax, 1
+            je PadNormal
+            jmp PadRapido
 
-        PadLento:
+            PadLento :
         mov VEL_PADDLE_BASE, 0x41100000
-        jmp FinAjustes
+            jmp FinAjustes
 
-        PadNormal:
+            PadNormal :
         mov VEL_PADDLE_BASE, 0x41500000
-        jmp FinAjustes
+            jmp FinAjustes
 
-        PadRapido:
+            PadRapido :
         mov VEL_PADDLE_BASE, 0x41900000
 
-        FinAjustes:
+            FinAjustes :
     }
 }
 
@@ -147,105 +149,106 @@ void CargarNivel(Ladrillo* ladrillos, int nivel) {
         jge CheckMax
         mov eax, 1
         jmp SetMapIdx
-        CheckMax:
+        CheckMax :
         cmp eax, 10
-        jle SetMapIdx
-        mov eax, 1
+            jle SetMapIdx
+            mov eax, 1
 
-        SetMapIdx:
-        mov nivel, eax
-        dec eax
-        mov ecx, 10
-        cdq
-        idiv ecx
-        mov ebx, edx
+            SetMapIdx :
+            mov nivel, eax
+            dec eax
+            mov ecx, 10
+            cdq
+            idiv ecx
+            mov ebx, edx
 
-        mov esi, ladrillos
-        mov ecx, 0
+            mov esi, ladrillos
+            mov ecx, 0
 
-        LoopFilas:
+            LoopFilas:
         cmp ecx, FILAS
-        jge FinCarga
-        mov edx, 0
+            jge FinCarga
+            mov edx, 0
 
-        LoopCols:
-        cmp edx, COLUMNAS
-        jge NextFila
+            LoopCols :
+            cmp edx, COLUMNAS
+            jge NextFila
 
-        fld LADRILLO_ANCHO
-        fadd LADRILLO_ESPACIO
-        mov temp_int, edx
-        fild temp_int
-        fmulp ST(1), ST(0)
-        fadd LADRILLO_OFFSET_X
-        fstp [esi]
+            fld LADRILLO_ANCHO
+            fadd LADRILLO_ESPACIO
+            mov temp_int, edx
+            fild temp_int
+            fmulp ST(1), ST(0)
+            fadd LADRILLO_OFFSET_X
+            fstp[esi]
 
-        fld LADRILLO_ALTO
-        fadd LADRILLO_ESPACIO
-        mov temp_int, ecx
-        fild temp_int
-        fmulp ST(1), ST(0)
-        fadd LADRILLO_OFFSET_Y
-        fstp [esi + 4]
+            fld LADRILLO_ALTO
+            fadd LADRILLO_ESPACIO
+            mov temp_int, ecx
+            fild temp_int
+            fmulp ST(1), ST(0)
+            fadd LADRILLO_OFFSET_Y
+            fstp[esi + 4]
 
-        mov eax, LADRILLO_ANCHO
-        mov [esi + 8], eax
-        mov eax, LADRILLO_ALTO
-        mov [esi + 12], eax
+            mov eax, LADRILLO_ANCHO
+            mov[esi + 8], eax
+            mov eax, LADRILLO_ALTO
+            mov[esi + 12], eax
 
-        mov [esi + 28], ecx
+            mov[esi + 28], ecx
 
-        mov eax, ebx
-        imul eax, 60
-        mov edi, ecx
-        imul edi, 10
-        add eax, edi
-        add eax, edx
-        imul eax, 4
-        lea edi, PATRONES
-        mov eax, [edi + eax]
-        cmp eax, 1
-        jne LadrilloInactivo
+            mov eax, ebx
+            imul eax, 60
+            mov edi, ecx
+            imul edi, 10
+            add eax, edi
+            add eax, edx
+            imul eax, 4
+            lea edi, PATRONES
+            mov eax, [edi + eax]
+            cmp eax, 1
+            jne LadrilloInactivo
 
-        mov byte ptr [esi + 16], 1
-        inc ladrillosRestantes
+            mov byte ptr[esi + 16], 1
+            inc ladrillosRestantes
 
-        mov eax, 1
-        mov edi, nivel
-        cmp edi, 6
-        jl AsignarRes
-        cmp ecx, 0
-        je Res3
-        cmp ecx, 1
-        je Res3
-        cmp ecx, 2
-        je Res2
-        cmp ecx, 3
-        je Res2
-        jmp AsignarRes
+            mov eax, 1
+            mov edi, nivel
+            cmp edi, 6
+            jl AsignarRes
 
-        Res3: mov eax, 3; jmp AsignarRes
-        Res2: mov eax, 2; jmp AsignarRes
+            cmp ecx, 0
+            je Res3
+            cmp ecx, 1
+            je Res3
+            cmp ecx, 2
+            je Res2
+            cmp ecx, 3
+            je Res2
+            jmp AsignarRes
 
-        AsignarRes:
-        mov [esi + 20], eax
-        mov [esi + 24], eax
-        jmp AvanzarPtr
+            Res3 : mov eax, 3; jmp AsignarRes
+            Res2 : mov eax, 2; jmp AsignarRes
 
-        LadrilloInactivo:
-        mov byte ptr [esi + 16], 0
-        mov dword ptr [esi + 20], 0
+            AsignarRes :
+        mov[esi + 20], eax
+            mov[esi + 24], eax
+            jmp AvanzarPtr
 
-        AvanzarPtr:
-        add esi, 32
-        inc edx
-        jmp LoopCols
+            LadrilloInactivo :
+        mov byte ptr[esi + 16], 0
+            mov dword ptr[esi + 20], 0
 
-        NextFila:
+            AvanzarPtr :
+            add esi, 32
+            inc edx
+            jmp LoopCols
+
+            NextFila :
         inc ecx
-        jmp LoopFilas
+            jmp LoopFilas
 
-        FinCarga:
+            FinCarga :
     }
 }
 
@@ -257,58 +260,87 @@ void CargarPuntajes() {
         for (int i = 0; i < MAX_SCORES; i++) mejoresPuntajes[i].nombre[15] = '\0';
     }
     else {
-        for (int i = 0; i < MAX_SCORES; i++) { strcpy_s(mejoresPuntajes[i].nombre, 16, "-----"); mejoresPuntajes[i].puntaje = 0; }
+        for (int i = 0; i < MAX_SCORES; i++) {
+            strcpy_s(mejoresPuntajes[i].nombre, 16, "-----");
+            mejoresPuntajes[i].puntaje = 0;
+        }
     }
 }
 
 void GuardarPuntajes() {
     FILE* file = fopen("scores.dat", "wb");
-    if (file) { fwrite(mejoresPuntajes, sizeof(Jugador), MAX_SCORES, file); fclose(file); }
+    if (file) {
+        fwrite(mejoresPuntajes, sizeof(Jugador), MAX_SCORES, file);
+        fclose(file);
+    }
 }
 
 void OrdenarPuntajesASM() {
     Jugador* pLista = mejoresPuntajes;
     int n = MAX_SCORES;
+    int stride = sizeof(Jugador);
+
     __asm {
-        mov esi, pLista
         mov ecx, n
         dec ecx
+
         LoopExterno :
         push ecx
-            mov edi, esi
+            mov edi, pLista
             mov ebx, n
             dec ebx
+
             LoopInterno :
-        mov eax, [edi + 16]
-            mov edx, [edi + 20 + 16]
+        mov esi, edi
+            add esi, stride
+
+            mov eax, [edi + 16]
+            mov edx, [esi + 16]
             cmp eax, edx
             jge NoSwap
+
             mov[edi + 16], edx
-            mov[edi + 20 + 16], eax
+            mov[esi + 16], eax
+
             mov eax, [edi]
-            mov edx, [edi + 20]
+            mov edx, [esi]
             mov[edi], edx
-            mov[edi + 20], eax
+            mov[esi], eax
+
             mov eax, [edi + 4]
-            mov edx, [edi + 24]
+            mov edx, [esi + 4]
             mov[edi + 4], edx
-            mov[edi + 24], eax
+            mov[esi + 4], eax
+
             mov eax, [edi + 8]
-            mov edx, [edi + 28]
+            mov edx, [esi + 8]
             mov[edi + 8], edx
-            mov[edi + 28], eax
+            mov[esi + 8], eax
+
             mov eax, [edi + 12]
-            mov edx, [edi + 32]
+            mov edx, [esi + 12]
             mov[edi + 12], edx
-            mov[edi + 32], eax
+            mov[esi + 12], eax
+
             NoSwap :
-        add edi, 20
+        add edi, stride
             dec ebx
             jnz LoopInterno
+
             pop ecx
             dec ecx
             jnz LoopExterno
     }
+}
+
+void TrimWhitespace(char* str) {
+    if (!str) return;
+    char* start = str;
+    while (*start && isspace((unsigned char)*start)) start++;
+    char* end = start + strlen(start) - 1;
+    while (end > start && isspace((unsigned char)*end)) end--;
+    *(end + 1) = '\0';
+    if (start != str) memmove(str, start, strlen(start) + 1);
 }
 
 void DibujarTextoCentrado(SDL_Renderer* r, TTF_Font* f, const char* texto, int y, SDL_Color c) {
@@ -325,7 +357,13 @@ void DibujarTextoCentrado(SDL_Renderer* r, TTF_Font* f, const char* texto, int y
 
 void DibujarCorazon(SDL_Renderer* renderer, float x, float y, float escala) {
     SDL_SetRenderDrawColor(renderer, 255, 50, 50, 255);
-    int forma[5][7] = { {0,1,1,0,1,1,0}, {1,1,1,1,1,1,1}, {1,1,1,1,1,1,1}, {0,1,1,1,1,1,0}, {0,0,1,1,1,0,0} };
+    int forma[5][7] = {
+        {0,1,1,0,1,1,0},
+        {1,1,1,1,1,1,1},
+        {1,1,1,1,1,1,1},
+        {0,1,1,1,1,1,0},
+        {0,0,1,1,1,0,0}
+    };
     for (int fil = 0; fil < 5; fil++) {
         for (int col = 0; col < 7; col++) {
             if (forma[fil][col] == 1) {
@@ -377,6 +415,7 @@ int main(int argc, char* argv[]) {
     int input_enter = 0, input_esc = 0;
     SDL_Event evento;
     const bool* teclas = SDL_GetKeyboardState(NULL);
+
     SDL_Color colorBlanco = { 255, 255, 255, 255 };
     SDL_Color colorAmarillo = { 255, 255, 0, 255 };
     SDL_Color colorRosa = { 255, 100, 200, 255 };
@@ -387,9 +426,11 @@ int main(int argc, char* argv[]) {
 
         while (SDL_PollEvent(&evento)) {
             if (evento.type == SDL_EVENT_QUIT) corriendo = 0;
+
             if (estado_actual == ESTADO_INPUT_NOMBRE && evento.type == SDL_EVENT_TEXT_INPUT) {
                 if (strlen(inputText) < 15) strcat_s(inputText, 16, evento.text.text);
             }
+
             if (evento.type == SDL_EVENT_KEY_DOWN) {
                 if (evento.key.key == SDLK_RETURN) input_enter = 1;
                 if (evento.key.key == SDLK_ESCAPE) input_esc = 1;
@@ -410,14 +451,9 @@ int main(int argc, char* argv[]) {
                         opcionAjustes--;
                         if (opcionAjustes < 0) opcionAjustes = 2;
                     }
-
                     if (evento.key.key == SDLK_RIGHT) {
-                        if (opcionAjustes == 0) {
-                            dificultadIdx = (dificultadIdx + 1) % 3;
-                        }
-                        else if (opcionAjustes == 1) {
-                            velPaddleIdx = (velPaddleIdx + 1) % 3;
-                        }
+                        if (opcionAjustes == 0) dificultadIdx = (dificultadIdx + 1) % 3;
+                        else if (opcionAjustes == 1) velPaddleIdx = (velPaddleIdx + 1) % 3;
                         else if (opcionAjustes == 2) {
                             nivelActual++;
                             if (nivelActual > 10) nivelActual = 1;
@@ -425,12 +461,8 @@ int main(int argc, char* argv[]) {
                         ActualizarDificultad();
                     }
                     if (evento.key.key == SDLK_LEFT) {
-                        if (opcionAjustes == 0) {
-                            dificultadIdx = (dificultadIdx - 1 + 3) % 3;
-                        }
-                        else if (opcionAjustes == 1) {
-                            velPaddleIdx = (velPaddleIdx - 1 + 3) % 3;
-                        }
+                        if (opcionAjustes == 0) dificultadIdx = (dificultadIdx - 1 + 3) % 3;
+                        else if (opcionAjustes == 1) velPaddleIdx = (velPaddleIdx - 1 + 3) % 3;
                         else if (opcionAjustes == 2) {
                             nivelActual--;
                             if (nivelActual < 1) nivelActual = 10;
@@ -448,7 +480,8 @@ int main(int argc, char* argv[]) {
 
         if (estado_actual == ESTADO_MENU && input_enter) {
             CargarNivel(ladrillos, nivelActual);
-            pelota.x = (float)ANCHO_VENTANA / 2.0f; pelota.y = (float)ALTO_VENTANA / 2.0f;
+            pelota.x = (float)ANCHO_VENTANA / 2.0f;
+            pelota.y = (float)ALTO_VENTANA / 2.0f;
             paddle.w = PADDLE_ANCHO;
             paddle.x = ((float)ANCHO_VENTANA - PADDLE_ANCHO) / 2.0f;
             float v = CalcularVelocidad(nivelActual);
@@ -477,86 +510,97 @@ int main(int argc, char* argv[]) {
             cmp eax, ESTADO_AJUSTES
             je LogicaAjustes
             jmp FinLogica
-            LogicaMenu:
+
+            LogicaMenu :
             cmp input_esc, 1
-            jne CheckMenuStart
-            mov corriendo, 0
-            jmp FinLogica
-            CheckMenuStart:
+                jne CheckMenuStart
+                mov corriendo, 0
+                jmp FinLogica
+                CheckMenuStart :
             cmp input_enter, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_JUGANDO
-            jmp FinLogica
-            LogicaJugando:
+                jne FinLogica
+                mov estado_actual, ESTADO_JUGANDO
+                jmp FinLogica
+
+                LogicaJugando :
             cmp input_enter, 1
-            jne CheckGameOver
-            mov estado_actual, ESTADO_PAUSA
-            jmp FinLogica
-            CheckGameOver:
+                jne CheckGameOver
+                mov estado_actual, ESTADO_PAUSA
+                jmp FinLogica
+                CheckGameOver :
             cmp vidas, 0
-            jg FinLogica
-            mov estado_actual, ESTADO_GAMEOVER
-            jmp FinLogica
-            LogicaPausa:
+                jg FinLogica
+                mov estado_actual, ESTADO_GAMEOVER
+                jmp FinLogica
+
+                LogicaPausa :
             cmp input_enter, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_JUGANDO
-            jmp FinLogica
-            LogicaGameOver:
+                jne FinLogica
+                mov estado_actual, ESTADO_JUGANDO
+                jmp FinLogica
+
+                LogicaGameOver :
             cmp input_enter, 1
-            jne CheckExitGO
-            mov estado_actual, ESTADO_INPUT_NOMBRE
-            jmp FinLogica
-            CheckExitGO:
+                jne CheckExitGO
+                mov estado_actual, ESTADO_INPUT_NOMBRE
+                jmp FinLogica
+                CheckExitGO :
             cmp input_esc, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_MENU
-            mov vidas, 3
-            mov puntaje, 0
-            mov nivelActual, 1
-            jmp FinLogica
-            LogicaInput:
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+                mov vidas, 3
+                mov puntaje, 0
+                mov nivelActual, 1
+                jmp FinLogica
+
+                LogicaInput :
             cmp input_enter, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_MEJORES
-            mov save_highscore, 1
-            jmp FinLogica
-            LogicaMejores:
+                jne FinLogica
+                mov estado_actual, ESTADO_MEJORES
+                mov save_highscore, 1
+                jmp FinLogica
+
+                LogicaMejores :
             cmp input_esc, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_MENU
-            mov vidas, 3
-            mov puntaje, 0
-            mov nivelActual, 1
-            jmp FinLogica
-            LogicaCreditos:
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+                mov vidas, 3
+                mov puntaje, 0
+                mov nivelActual, 1
+                jmp FinLogica
+
+                LogicaCreditos :
             cmp input_esc, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_MENU
-            jmp FinLogica
-            LogicaVictoria:
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+                jmp FinLogica
+
+                LogicaVictoria :
             cmp input_enter, 1
-            jne CheckExitWin
-            mov estado_actual, ESTADO_INPUT_NOMBRE
-            jmp FinLogica
-            CheckExitWin:
+                jne CheckExitWin
+                mov estado_actual, ESTADO_INPUT_NOMBRE
+                jmp FinLogica
+                CheckExitWin :
             cmp input_esc, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_MENU
-            mov vidas, 3
-            mov puntaje, 0
-            mov nivelActual, 1
-            jmp FinLogica
-            LogicaAjustes:
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+                mov vidas, 3
+                mov puntaje, 0
+                mov nivelActual, 1
+                jmp FinLogica
+
+                LogicaAjustes :
             cmp input_esc, 1
-            jne FinLogica
-            mov estado_actual, ESTADO_MENU
-            FinLogica:
+                jne FinLogica
+                mov estado_actual, ESTADO_MENU
+
+                FinLogica :
         }
 
         if (estado_actual == ESTADO_MEJORES && save_highscore) {
             save_highscore = false;
             SDL_StopTextInput(ventana);
+            TrimWhitespace(inputText);
             if (strlen(inputText) == 0) strcpy_s(inputText, 16, "ANONIMO");
             strcpy_s(mejoresPuntajes[MAX_SCORES - 1].nombre, 16, inputText);
             mejoresPuntajes[MAX_SCORES - 1].puntaje = puntaje;
@@ -565,13 +609,15 @@ int main(int argc, char* argv[]) {
             strcpy_s(inputText, 16, "");
         }
 
-        if (estado_actual == ESTADO_INPUT_NOMBRE && !SDL_TextInputActive(ventana)) SDL_StartTextInput(ventana);
+        if (estado_actual == ESTADO_INPUT_NOMBRE && !SDL_TextInputActive(ventana)) {
+            SDL_StartTextInput(ventana);
+        }
 
         if (estado_actual == ESTADO_MENU && input_esc) {
-            pelota.x = (float)ANCHO_VENTANA / 2.0f; pelota.y = (float)ALTO_VENTANA / 2.0f;
+            pelota.x = (float)ANCHO_VENTANA / 2.0f;
+            pelota.y = (float)ALTO_VENTANA / 2.0f;
             paddle.w = PADDLE_ANCHO;
             paddle.x = ((float)ANCHO_VENTANA - PADDLE_ANCHO) / 2.0f;
-
             float v = CalcularVelocidad(nivelActual);
             vel_x = (rand() % 2 == 0) ? v : -v;
             vel_y = -v;
@@ -584,7 +630,7 @@ int main(int argc, char* argv[]) {
             float temp_pv = VEL_PADDLE_BASE;
             int dir_paddle = 0;
             if (teclas[SDL_SCANCODE_RIGHT]) dir_paddle = 1;
-            if (teclas[SDL_SCANCODE_LEFT])  dir_paddle = -1;
+            if (teclas[SDL_SCANCODE_LEFT]) dir_paddle = -1;
 
             if (dir_paddle != 0) {
                 __asm {
@@ -593,8 +639,8 @@ int main(int argc, char* argv[]) {
                     je MoverDer
                     fsub temp_pv
                     jmp FinPaddle
-                    MoverDer: fadd temp_pv
-                    FinPaddle: fstp temp_px
+                    MoverDer : fadd temp_pv
+                    FinPaddle : fstp temp_px
                 }
                 paddle.x = temp_px;
             }
@@ -610,8 +656,10 @@ int main(int argc, char* argv[]) {
                 fstp pelota.y
             }
 
-            float ball_r = pelota.x + PELOTA_TAM; float ball_b = pelota.y + PELOTA_TAM;
-            float pad_r = paddle.x + paddle.w; float pad_b = paddle.y + PADDLE_ALTO;
+            float ball_r = pelota.x + PELOTA_TAM;
+            float ball_b = pelota.y + PELOTA_TAM;
+            float pad_r = paddle.x + paddle.w;
+            float pad_b = paddle.y + PADDLE_ALTO;
 
             if (ball_r >= paddle.x && pelota.x <= pad_r && ball_b >= paddle.y && pelota.y <= pad_b) {
                 float perturbacion = ((float)(rand() % 300) / 100.0f) - 1.5f;
@@ -634,6 +682,7 @@ int main(int argc, char* argv[]) {
                 if (ball_r >= b.x && pelota.x <= b.x + b.w && ball_b >= b.y && pelota.y <= b.y + b.h) {
                     ladrillos[i].resistencia--;
                     vel_y = -vel_y;
+
                     if (ladrillos[i].resistencia <= 0) {
                         ladrillos[i].activo = false;
                         puntaje += 100;
@@ -649,11 +698,11 @@ int main(int argc, char* argv[]) {
                             jg TopeVidas
                             mov vidas, ebx
                             jmp ActMeta
-                            TopeVidas:
+                            TopeVidas :
                             mov vidas, MAX_VIDAS
-                            ActMeta:
+                                ActMeta :
                             add proximaVida, PUNTAJE_VIDA_EXTRA
-                            NoVidaExtra:
+                                NoVidaExtra :
                         }
 
                         if (ladrillosRestantes <= 0) {
@@ -663,7 +712,8 @@ int main(int argc, char* argv[]) {
                             }
                             else {
                                 CargarNivel(ladrillos, nivelActual);
-                                pelota.x = (float)ANCHO_VENTANA / 2.0f; pelota.y = (float)ALTO_VENTANA / 2.0f;
+                                pelota.x = (float)ANCHO_VENTANA / 2.0f;
+                                pelota.y = (float)ALTO_VENTANA / 2.0f;
                                 float nuevaVel = CalcularVelocidad(nivelActual);
                                 vel_x = (rand() % 2 == 0) ? nuevaVel : -nuevaVel;
                                 vel_y = -nuevaVel;
@@ -676,9 +726,11 @@ int main(int argc, char* argv[]) {
 
             if (pelota.x <= 0 || pelota.x + PELOTA_TAM >= ANCHO_VENTANA) vel_x = -vel_x;
             if (pelota.y <= 0) vel_y = -vel_y;
+
             if (pelota.y > ALTO_VENTANA) {
                 vidas--;
-                pelota.x = (float)ANCHO_VENTANA / 2.0f; pelota.y = (float)ALTO_VENTANA / 2.0f;
+                pelota.x = (float)ANCHO_VENTANA / 2.0f;
+                pelota.y = (float)ALTO_VENTANA / 2.0f;
                 float velActual = CalcularVelocidad(nivelActual);
                 vel_y = -velActual;
                 vel_x = (rand() % 2 == 0) ? velActual : -velActual;
@@ -689,7 +741,9 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 15, 15, 25, 255);
         SDL_RenderClear(renderer);
 
-        if (estado_actual == ESTADO_JUGANDO || estado_actual == ESTADO_PAUSA || estado_actual == ESTADO_GAMEOVER || estado_actual == ESTADO_VICTORIA) {
+        if (estado_actual == ESTADO_JUGANDO || estado_actual == ESTADO_PAUSA ||
+            estado_actual == ESTADO_GAMEOVER || estado_actual == ESTADO_VICTORIA) {
+
             int idx = 0;
             for (int i = 0; i < FILAS; i++) {
                 SDL_Color cFila = coloresFilas[i];
@@ -705,6 +759,7 @@ int main(int argc, char* argv[]) {
                     idx++;
                 }
             }
+
             SDL_SetRenderDrawColor(renderer, 200, 200, 255, 255);
             SDL_RenderFillRect(renderer, &paddle);
             SDL_SetRenderDrawColor(renderer, 255, 50, 50, 255);
@@ -715,7 +770,9 @@ int main(int argc, char* argv[]) {
             char bufNivel[20]; sprintf_s(bufNivel, 20, "NIVEL: %d", nivelActual);
             DibujarTextoCentrado(renderer, fontRetro, bufNivel, 60, colorAmarillo);
 
-            for (int i = 0; i < vidas; i++) DibujarCorazon(renderer, (float)ANCHO_VENTANA - 60.0f - ((float)i * 50.0f), 25.0f, 1.5f);
+            for (int i = 0; i < vidas; i++) {
+                DibujarCorazon(renderer, (float)ANCHO_VENTANA - 60.0f - ((float)i * 50.0f), 25.0f, 1.5f);
+            }
         }
 
         if (estado_actual == ESTADO_MENU) {
@@ -768,7 +825,7 @@ int main(int argc, char* argv[]) {
             DibujarTextoCentrado(renderer, fontTitulo, "HALL OF FAME", 50, colorAmarillo);
             for (int i = 0; i < MAX_SCORES; i++) {
                 char lineaScore[60];
-                sprintf_s(lineaScore, 60, "%d. %s    -    %05d", i + 1, mejoresPuntajes[i].nombre, mejoresPuntajes[i].puntaje);
+                sprintf_s(lineaScore, 60, "%d. %s - %05d", i + 1, mejoresPuntajes[i].nombre, mejoresPuntajes[i].puntaje);
                 SDL_Color c = (i == 0) ? colorAmarillo : colorBlanco;
                 DibujarTextoCentrado(renderer, fontRetro, lineaScore, 200 + (i * 55), c);
             }
