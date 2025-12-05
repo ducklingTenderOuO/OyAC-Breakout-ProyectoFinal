@@ -65,19 +65,24 @@ El núcleo del juego no es C estándar. Utilizamos bloques `__asm` para:
 
 ## 🛠️ Instalación y Compilación
 
-Este proyecto está diseñado para **Visual Studio** en arquitectura **x86** (32-bits).
+⚠️ **Importante:** Este proyecto está diseñado para **Visual Studio** en arquitectura **x86** (32-bits). Por lo tanto, requiere compilarse en modo **x86 (32-bits)** debido a que el compilador MSVC de Visual Studio no admite `__asm` bloques en arquitectura x64.
 
 1.  **Clonar el repositorio:**
     ```bash
     git clone [https://github.com/TU_USUARIO/oyac-breakout-proyectofinal.git](https://github.com/TU_USUARIO/oyac-breakout-proyectofinal.git)
     ```
+    
 2.  **Requisitos Previos:**
     * Visual Studio 2022 (con soporte para C++).
     * Librerías **SDL3** y **SDL3_ttf** (incluidas en la estructura de carpetas o descargables desde [libsdl.org](https://libsdl.org/)).
+
 3.  **Configuración del Proyecto:**
     * Abrir `BreakoutGame.sln`.
-    * Asegurarse de que la plataforma esté en **x86** (El ensamblador *inline* de MSVC no soporta x64).
+    * Seleccionar la configuración **Debug** o **Release** y la plataforma **x86**.
     * Verificar que las rutas de los *Include Directories* y *Library Directories* apunten a las carpetas de SDL3 en tu equipo.
+
+
+
 4.  **Ejecución:**
     * Compilar la solución.
     * **Importante:** Asegúrate de que los archivos `SDL3.dll`, `SDL3_ttf.dll` y `RETRO.TTF` estén en la misma carpeta que el ejecutable generado (`Debug` o `Release`).
@@ -90,4 +95,4 @@ Proyecto desarrollado con fines académicos para la materia de **Organización y
 * **✨ Erick Anselmo Moya Monreal ✨**
 
 ---
-*Hecho con ❤️ y mucho código ensamblador.*
+*Hecho con ❤️, C y mucho código ensamblador.*
