@@ -36,6 +36,7 @@ El núcleo del juego no es C estándar. Utilizamos bloques `__asm` para:
 
 ### 🎮 Mecánicas de Juego
 * **Sistema de 10 Niveles:** Mapas progresivos con diseños únicos definidos por matrices.
+* **Selector de Nivel:** Permite iniciar la partida desde cualquier nivel desbloqueado o para prácticas (visible en el menú principal).
 * **Dificultad Dinámica:**
     * Aumento de velocidad del 15% por nivel.
     * **Resistencia de Ladrillos:** A partir del Nivel 6, los ladrillos requieren múltiples golpes (indicado por colores).
@@ -54,14 +55,13 @@ El núcleo del juego no es C estándar. Utilizamos bloques `__asm` para:
 | Contexto | Tecla | Acción |
 | :--- | :---: | :--- |
 | **Menú** | `Enter` | Iniciar Juego |
+| | `←` / `→` | **Seleccionar Nivel Inicial** |
 | | `Tab` | Ver Mejores Puntuaciones |
 | | `C` | Ver Créditos |
-| | `Esc` | Salir del Juego |
+| | `Esc` | Salir |
 | **En Juego** | `←` / `→` | Mover la Paleta |
-| | `Enter` | Pausar Juego |
-| **Pausa** | `Enter` | Reanudar |
-| **Game Over / Win** | `Enter` | Ir a guardar Récord |
-| **General** | `Esc` | Volver al Menú anterior |
+| | `Enter` | Pausar / Reanudar |
+| **Final** | `Enter` | Guardar Récord y Continuar |
 
 ## 🛠️ Instalación y Compilación
 
