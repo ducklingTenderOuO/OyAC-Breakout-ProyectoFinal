@@ -38,6 +38,7 @@ El núcleo del juego no es C estándar. Utilizamos bloques `__asm` para:
 ### 🎮 Mecánicas de Juego
 * **Sistema de 10 Niveles:** Mapas progresivos con diseños únicos definidos por matrices.
 * **Selector de Nivel:** Permite iniciar la partida desde cualquier nivel desbloqueado o para prácticas (visible en el menú principal).
+* **Dificultad Personalizable:** Menú de ajustes para modificar la velocidad de la pelota, velocidad de la paleta y nivel inicial.
 * **Dificultad Dinámica:**
     * Aumento de velocidad del 15% por nivel.
     * **Resistencia de Ladrillos:** A partir del Nivel 6, los ladrillos requieren múltiples golpes (indicado por colores).
@@ -48,20 +49,22 @@ El núcleo del juego no es C estándar. Utilizamos bloques `__asm` para:
 
 ### 🎨 Estética Retro
 * Fuente tipográfica estilo Arcade (`RETRO.TTF`).
-* Renderizado de corazones mediante primitivas geométricas (Pixel Art).
-* Uso de caracteres Unicode para simbología especial en créditos.
+* Renderizado de corazones (vidas) mediante primitivas geométricas (Pixel Art procedural).
+* Interfaz limpia utilizando SDL3_ttf para renderizado de texto de alta calidad.
 
 ## 🕹️ Controles
 
 | Contexto | Tecla | Acción |
 | :--- | :---: | :--- |
-| **Menú** | `Enter` | Iniciar Juego |
-| | `←` / `→` | **Seleccionar Nivel Inicial** |
+| **Menú Principal** | `Enter` | Iniciar Juego |
 | | `Tab` | Ver Mejores Puntuaciones |
+| | `A` | Ajustes (Dificultad/Nivel) |
 | | `C` | Ver Créditos |
 | | `Esc` | Salir |
 | **En Juego** | `←` / `→` | Mover la Paleta |
 | | `Enter` | Pausar / Reanudar |
+| **Ajustes** | `↑` / `↓` | Seleccionar opción |
+| | `←` / `→` | Cambiar valor |
 | **Final** | `Enter` | Guardar Récord y Continuar |
 
 ## 🛠️ Instalación y Compilación
